@@ -1,5 +1,5 @@
 
-CC = gcc
+CC = gcc-4.6
 
 GCCPLUGINS_DIR:= $(shell $(CC) -print-file-name=plugin)
 INCLUDE= -I$(GCCPLUGINS_DIR)/include
