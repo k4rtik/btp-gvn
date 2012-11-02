@@ -135,12 +135,30 @@ static unsigned int const_propagation (void)
 				switch (get_gimple_rhs_class (code)) {
 					/* Expression containing unary operator */
 					case GIMPLE_UNARY_RHS:
-						fprintf(stdout, "Ta Da UNARY\n");
+						fprintf(stdout, "UNARY\n");
 						break;
 					
 					/* Expression containing binary operator */
 					case GIMPLE_BINARY_RHS:
-						fprintf(stdout, "Ta Da BINARY\n");
+						if (TREE_CODE(rhs1) == VAR_DECL) {
+							if ((const_var = get_cst_var(rhs1))) {
+								gimple new_stmt = gimple_build_assign_with_ops (code, lhs, const_var->rhs, rhs2);
+								gsi_replace(&gsi, new_stmt, false);
+								//insert_entry(lhs, const_var->val, const_var->rhs);
+							}
+							else
+								delete_entry(lhs);
+						}
+						if (TREE_CODE(rhs2) == VAR_DECL) {
+							if ((const_var = get_cst_var(rhs2))) {
+								gimple new_stmt = gimple_build_assign_with_ops (code, lhs, rhs1, const_var->rhs);
+								gsi_replace(&gsi, new_stmt, false);
+								//insert_entry(lhs, const_var->val, const_var->rhs);
+							}
+							else
+								delete_entry(lhs);
+						}
+
 					break;
 
 					case GIMPLE_SINGLE_RHS:
