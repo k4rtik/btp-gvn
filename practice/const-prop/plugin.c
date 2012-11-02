@@ -34,6 +34,7 @@ static datastore * create_store(tree, int, tree);
 static void insert_entry(tree, int, tree);
 static void delete_entry(tree);
 static datastore * get_cst_var(tree);
+static void print_store(void);
 
 /*-----------------------------------------------------------------------------
  *  Structure of the pass we want to insert, identical to a regular ipa pass
@@ -105,7 +106,7 @@ plugin_init(struct plugin_name_args *plugin_info,
  *   1. There should be a statement in which variable x is used.
  *   2. All definitions of x reaching this statement should have the same
  *      value.
- * This code considers the cases where only one definition reaches the use.
+ * This code considers only the simpler linear code case.
  */
 static unsigned int const_propagation (void)
 {
@@ -180,6 +181,7 @@ static unsigned int const_propagation (void)
 				}
 			}
 		}
+		print_store();
         }
 
         /* Display transformed code */;
@@ -247,10 +249,20 @@ static void delete_entry(tree var)
 
 static datastore * get_cst_var(tree var)
 {
-	datastore * temp;
+	datastore *temp;
 	for (temp = store; temp; temp = temp->next) {
 		if (temp->var == var)
 			return temp;
 	}
 	return NULL;
+}
+
+static void print_store(void)
+{
+	datastore * temp;
+	fprintf(dump_file, "\nConstants dump:\n==============\n");
+	for (temp = store; temp; temp = temp->next) {
+		fprintf(dump_file, "%s:%d, ", get_name(temp->var), temp->val);
+	}
+	fprintf(dump_file, "\n\n");
 }
