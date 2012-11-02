@@ -149,6 +149,8 @@ static unsigned int const_propagation (void)
 							else
 								delete_entry(lhs);
 						}
+						/* need to calculate rhs1 again since gsi might get replaced above */
+						rhs1 = gimple_assign_rhs1(gsi_stmt(gsi));
 						if (TREE_CODE(rhs2) == VAR_DECL) {
 							if ((const_var = get_cst_var(rhs2))) {
 								gimple new_stmt = gimple_build_assign_with_ops (code, lhs, rhs1, const_var->rhs);
@@ -158,7 +160,6 @@ static unsigned int const_propagation (void)
 							else
 								delete_entry(lhs);
 						}
-
 					break;
 
 					case GIMPLE_SINGLE_RHS:
