@@ -6,17 +6,17 @@ Global value numbering (GVN) is a program analysis that categorizes expressions 
 
 
 \subsection{Literature Survey}
-Kildall in 1973\cite{kildall} introduced the most precise global analysis algorithm for program optimization by using the concept of an optimizing function for generalization. Optimizing functions for constant propagation and common subepression elimination were described but the algorithm had an exponential cost.
+Kildall in 1973\cite{kildall} introduced the most precise global analysis algorithm for program optimization by using the concept of an optimizing function for generalization. Optimizing functions for constant propagation and common subexpression elimination were described but the algorithm had an exponential cost.
 
 Alpern, Wegman and Zadeck (AWZ) introduced an efficient algorithm in 1988\cite{awz} which uses a value graph to represent symbolic execution of a program. It represents the values of variables after a join using a selection function $\phi$, similar to the selection function in static single assignment (SSA) form, and treats these functions as uninterpreted, hence remains incomplete.
 
-The polynomial time algorithm introduced by Ruthing, Knoop and Steffen (RKS) in 1999\cite{ruthing} extends the algorithm by AWZ. It employs a normalization process using some rewrite rules for terms involving $\phi$ functions, until congruence classes reach a fixed point. This results in discovery of more equivalances and is optimal for acyclic programs but remains incomplete.
+The polynomial time algorithm introduced by Ruthing, Knoop and Steffen (RKS) in 1999\cite{ruthing} extends the algorithm by AWZ. It employs a normalization process using some rewrite rules for terms involving $\phi$ functions, until congruence classes reach a fixed point. This results in discovery of more equivalences and is optimal for acyclic programs but remains incomplete.
 
-Karthik Gargi proposed balanced algorithms in 2002\cite{gargi} which extend AWZ to perform forward propagation and reassociation and to consider back edges in SSA graph. This discovers more equivalences but is still incomplete.
+Karthik Gargi proposed balanced algorithms in 2002\cite{gargi} which extend AWZ to perform forward propagation and re-association and to consider back edges in SSA graph. This discovers more equivalences but is still incomplete.
 
 Gulwani and Necula in 2004\cite{gulwani} proposed a polynomial time algorithm which is optimal if only equalities of bounded size are considered.
 
 We are interested in a sufficiently efficient but complete algorithm for global analysis problem.
 
 \section{Motivation}
-A compiler is a fairly large software program and forms an excellent software engineering case study. Optimizing compilers are hard to build especially when software engineering practices encourage generic programming, which is good for code reuse but bad for runtime performance. Study of compiler optimizations provides a good blend of theory (for generality and correctness) and practice (for validation and efficiency). Global Value Numbering, specifically, is an interesting global dataflow analysis for study.
+A compiler is a fairly large software program and forms an excellent software engineering case study. Optimizing compilers are hard to build especially when software engineering practices encourage generic programming, which is good for code reuse but bad for run time performance. Study of compiler optimizations provides a good blend of theory (for generality and correctness) and practice (for validation and efficiency). Global Value Numbering, specifically, is an interesting global dataflow analysis for study.
