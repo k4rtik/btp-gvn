@@ -1,88 +1,35 @@
 \chapter{Work Done}
 
-\section{Compiler Infrastructures}
-There are various compiler infrastructures available as options for experimental compiler research. We looked into some of the most popular ones: SUIF, GCC and LLVM.
+\section{Previous Work (Monsoon Semester 2012)}
 
-\textbf{SUIF Compiler System}\cite{suif} is a compiler infrastructure made freely available by the Stanford SUIF Compiler Group to support research in optimizing and parallelizing compilers and uses a program representation, also called SUIF (Stanford University Intermediate Format). It supports C, C++, Fortran and Java as frontends and C, x86, Alpha and MachSUIF as backends. It provides an extensible SUIF representation which allows programmers to extend the representation without requiring updating the infrastruture.
+In the first phase of the project we started out with basic literature survey on Global Value Numbering to solidify essential concepts and study the approaches taken by researchers in the past.
 
-\textbf{GCC (GNU Compiler Collection)}\cite{gcc} is a compiler system produced by the GNU Project which supports various programming languages. GCC is adopted as the standard compiler by most of the modern UNIX-like operating systems, including Linux and BSD. Frontends are available for C, C++, Objective-C, Objective-C++, Fortran, Java, Ada, and Go. It has been ported to a wide variety of processor architecures and is also available for most embedded platforms.
+Next, a study of available options among compiler infrastructures was done and GCC\cite{gcc} identified as the implementation platform of choice owing to its open-source nature, industry recognition and popularity.
 
-\textbf{LLVM}\cite{llvm} is a fairly new compiler infrastructure developed at University of Illinois, which is designed for compile-time, link-time, run-time and idle-time optimizations of programs. It has a language-agnostic design, which allows it to support a wide variety of frontends, some of which include C, C++, Objective-C, D, Fortran and Ada among others. Clang, LLVM frontend for C-like languages, claims to be much faster and to use much less memory than GCC\cite{clang}. But LLVM supports fewer targets compared to GCC.
+A high level study of structure of GCC, including its intermediate representation (IR) forms (viz. GENERIC\cite{generic}, GIMPLE\cite{gimple} and RTL\cite{rtl}) and pipeline flow in GCC was done next.
 
-We choose GCC as our implementation platform as it is a popular, professional, open-source compiler and could yield more realistic results.
+Lastly, some practical experience was gained with a na\"{\i}ve implementation of constant propagation optimization as a GCC plugin.
 
-\section{Structure of GCC}
-Like most compilers, the compilation process of a GCC-based compiler can be conceptually split up in three phases\cite{gcc-structure}:
+\section{Progress}
 
+\subsection{Choice of Algorithm for implementation}
+
+We have identified \textbf{A Simple Algorithm for Global Value Numbring} by \textit{N Saleena, Vineeth Paleri} as the algorithm of choice for implementation of GVN on GCC framework. Salient features of this new algorithm include its complete nature in terms of number of identifiable redundancies (same as that of Kildall's approach), introduction of the concept of a \textit{Value Expression} to represent a set of equivalent expressions, and the inherent simplicity of the algorithm.
+
+\subsection{Performance Comparison}
+
+To compare the efficiency and performance of proposed implementation of the new algorithm, it was necessary to identify few good algorithms and benchmarks to run the tests.
+
+We have identified the following two algorithms for comparison, both of which are already implemented in GCC:
 \begin{itemize}
-	\item There is a separate front end for each supported language. A front end takes the source code, translates that source code into a semantically equivalent, language independent abstract syntax tree (AST). The syntax and semantics of this AST are defined by the GIMPLE language, the highest level language independent intermediate representation GCC has.
-	\item This AST is then run through a list of target independent code transformations that take care of constructing a control flow graph, and optimizing the AST for optimizing compilations, lowering to non-strict RTL (expand), and running RTL based optimizations for optimizing compilations. The non-strict RTL is handed over to more low-level passes.
-	\item The low-level passes are the passes that are part of the code generation process. The first job of these passes is to turn the non-strict RTL representation into strict RTL. Other jobs of the strict RTL passes include scheduling, doing peephole optimizations, and emitting the assembly output.
-\end{itemize}
-	Neither the AST nor the non-strict RTL representations are completely target independent, but the GIMPLE language is target independent.
-
-\subsection{IR Forms}
-GCC internally uses several intermediate forms:
-\begin{itemize}
-	\item GENERIC
-	\item GIMPLE
-	\item Register Transfer Language (RTL)
+	\item SCC-Based Value Numbering\cite{scc-vn} (\texttt{tree-ssa-sccvn.c} in GCC source) -- This is the current implementation of value numbering in GCC.
+	\item GVN-PRE\cite{vandrunen,gvn-pre} (\texttt{tree-ssa-pre.c} in GCC source) -- This is a value based Partial Redundancy Elimination algorithm, which looks like a good choice to observe the difference in number of redundancies identified by our implementation which does not include partial redundancies.
 \end{itemize}
 
-\subsubsection{GENERIC}
-GENERIC\cite{generic} is an intermediate representation language aimed to provide a language-independent way of representing an entire function in trees. The C, C++ and Java front ends of GCC produce GENERIC directly in the front end. Other front ends instead have different intermediate representations after parsing and convert these to GENERIC.
-\subsubsection{GIMPLE}
-GIMPLE\cite{gimple} is a three-address representation derived from GENERIC by breaking down GENERIC expressions into tuples of no more than 3 operands (with some exceptions like function calls) using temporary variables. All frontends of GCC convert their IR forms to GIMPLE (via GENERIC) for the middle stage of GCC, which does most of the code analysis and optimization.
-\subsubsection{Register Transfer Language}
-Register transfer language (RTL)\cite{rtl} is an intermediate representation (IR) that is very close to assembly language (low-level). In GCC, RTL is generated from the GIMPLE representation, transformed by various passes in the GCC `middle-end', and then converted to assembly language.
+We have also identified SPEC CPU2006\cite{spec-cpu06} as the benchmark suite for comparison testing based on previous work done in this area. More clarity on which tests among the suite are suitable for GVN is expected to be gained after the implementation.
 
-\subsection{Work Flow}
-GCC supports plugin mechanism for implementing optimization passes (manipulating GIMPLE form). The plugin structure is shown in figure \ref{fig:plugin}. The pass manager takes care of choosing and running all the available passes and their order on the program AST. A plugin could be either a static plugin or a dynamic one.
-\begin{figure}[htb]
-\centering
-\includegraphics[scale=0.7]{./plugin1}
-\caption{Plugin Structure in GCC\cite{grc}}
-\label{fig:plugin}
-\end{figure}
+\subsection{Study of GCC APIs for Pass Implementation}
 
-\pagebreak
-We choose to implement our pass as a dynamic plugin since it's easier to integrate it with GCC without recompiling. Figure \ref{fig:dynamic-plugin} shows how a dynamic plugin can be inserted at a desired point in the list of passes.
+We have chosen GCC version 4.6.3 for implementation.
 
-\begin{figure}[htb]
-\centering
-\includegraphics[scale=0.65]{./dynamic-plugin1}
-\caption{Dynamic Plugin Mechanism in GCC\cite{grc}}
-\label{fig:dynamic-plugin}
-\end{figure}
-
-\pagebreak
-\section{Constant Propagation - A Na\"{\i}ve Implementation}
-For gaining familiarity with GCC APIs for GIMPLE modification, a simple plugin was developed for a na\"{\i}ve implementation of constant propagation optimization, which is applicable only for simple linear code. We store the latest value for a constant variable in a data store and replace the use of that variable in following statements with the actual value in a single pass. The code for the plugin is available at\ \url{https://github.com/k4rtik/btp-gvn/tree/master/practice/const-prop}. Figure \ref{fig:testprog} shows the test program; figure \ref{fig:gimple} its GIMPLE form as produced by GCC; the intermediate form produced after the CFG pass of GCC is shown in figure \ref{fig:cfg}; and lastly the dump produced by our plugin including the converted intermediate code is shown in figure \ref{fig:cp}.
-
-\begin{figure}[htb]
-\centering
-\includegraphics{./test-program1}
-\caption{Test Program in C}
-\label{fig:testprog}
-\end{figure}
-
-\begin{figure}[htb]
-\centering
-\includegraphics{./gimple1}
-\caption{In GIMPLE IR form}
-\label{fig:gimple}
-\end{figure}
-
-\begin{figure}[htb]
-\centering
-\includegraphics{./cfg1}
-\caption{After CFG pass}
-\label{fig:cfg}
-\end{figure}
-
-\begin{figure}[htb]
-\centering
-\includegraphics{./const-prop1}
-\caption{Dump produced by our plugin}
-\label{fig:cp}
-\end{figure}
+A comprehensive study of GCC Application Programming Interface for implementation of optimization passes is under progress using GCC source code, GCC Internals Documentation\cite{gccint}, and slides from GCC Internals Course\cite{internals-course}, which is necessary to proceed with the proposed implementation.
