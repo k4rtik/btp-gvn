@@ -37,11 +37,11 @@ struct pointe_map_t *map;
 /* Data structure holding expression pools at a node - first element is vn */
 typedef struct
 {
-	tree *in;         /* EIN */
+	tree **in;        /* EIN */
 	tree **out;       /* EOUT */
 	tree **out_prev;  /* EOUT in the previous iteration */
 
-} exp_pool;
+} exp_poolset;
 
 gimple_stmt_iterator gsi;
 
@@ -131,7 +131,7 @@ static unsigned int do_gvn (void)
 	FOR_EACH_BB_FN (bb, cfun)
 	{
 		for (gsi = gsi_start_bb (bb); !gsi_end_p (gsi); gsi_next(&gsi))
-			initialize_exp_pool (gsi_stmt(gsi)); /* EOUTn = T */
+			initialize_exp_poolset (gsi_stmt(gsi)); /* EOUTn = T */
 	}
 
 	while ( change_in_exp_pools(cfun) )
@@ -147,11 +147,11 @@ static unsigned int do_gvn (void)
 	}
 }
 
-static void initialize_exp_pool(gimple stmt)
+static void initialize_exp_poolset(gimple stmt)
 {
-	exp_pool *pool_at_stmt = (exp_pool *) ggc_alloc_cleared_atomic(sizeof(exp_pool));
-	if (pool_at_stmt)
-		*pointer_map_insert(map, stmt) = (void *) pool_at_stmt;
+	exp_poolset *poolset = (exp_poolset *) ggc_alloc_cleared_atomic(sizeof(exp_poolset));
+	if (poolset)
+		*pointer_map_insert(map, stmt) = (void *) poolset;
 	else
 		fprintf(stdout, "Initializing memory failed!\n");
 
@@ -159,9 +159,9 @@ static void initialize_exp_pool(gimple stmt)
 	/* */
 	tree *T = NULL;
 	fprintf(stdout, "Initializing with T\n");
-	pool_at_stmt->out = (tree **) ggc_alloc_cleared_atomic(POOLMAX*sizeof(tree*));
+	poolset->out = (tree **) ggc_alloc_cleared_atomic(POOLMAX*sizeof(tree*));
 	for (int i=0; i<POOLMAX; i++) {
-		(pool_at_stmt->out)[i] = T;
+		(poolset->out)[i] = T;
 	}
 	// */
 }
@@ -191,7 +191,7 @@ static void set_in_pool(gimple_stmt_iterator gsi, basic_block bb)
 static void set_out_pool(gimple stmt)
 {
 	// call transfer function
-	transfer((exp_pool*) *pointer_map_contains(map, stmt));
+	transfer((exp_poolset*) *pointer_map_contains(map, stmt));
 }
 
 static void do_confluence(gsi_stmt_iterator gsi, basic_block bb)
@@ -200,11 +200,11 @@ static void do_confluence(gsi_stmt_iterator gsi, basic_block bb)
 	// TODO
 }
 
-static void transfer(exp_pool* pool)
+static void transfer(exp_poolset* poolset)
 {
 	tree *temp_pool[POOLMAX];
 	for (int i=0; i<POOLMAX; i++)
-		temp_pool[i] = (pool->in)[i];
+		temp_pool[i] = (poolset->in)[i];
 }
 
 //static unsigned int copy_propagation (void)
