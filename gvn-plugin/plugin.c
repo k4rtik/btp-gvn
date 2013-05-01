@@ -32,7 +32,7 @@ int plugin_is_GPL_compatible;
 //
 //const_val_container * cp;
 
-struct pointe_map_t *map;
+struct pointer_map_t *map;
 
 /* Data structure holding expression pools at a node - first element is vn */
 typedef struct
