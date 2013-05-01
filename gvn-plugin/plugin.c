@@ -37,9 +37,9 @@ struct pointe_map_t *map;
 /* Data structure holding expression pools at a node - first element is vn */
 typedef struct
 {
-	tree **in;        /* EIN */
-	tree **out;       /* EOUT */
-	tree **out_prev;  /* EOUT in the previous iteration */
+	tree **in;             /* EIN */
+	tree *out[POOLMAX];    /* EOUT */
+	tree **out_prev;       /* EOUT in the previous iteration */
 
 } exp_poolset;
 
@@ -159,7 +159,7 @@ static void initialize_exp_poolset(gimple stmt)
 	/* */
 	tree *T = NULL;
 	fprintf(stdout, "Initializing with T\n");
-	poolset->out = (tree **) ggc_alloc_cleared_atomic(POOLMAX*sizeof(tree*));
+	//poolset->out = (tree **) ggc_alloc_cleared_atomic(POOLMAX*sizeof(tree*));
 	for (int i=0; i<POOLMAX; i++) {
 		(poolset->out)[i] = T;
 	}
@@ -171,7 +171,10 @@ static bool change_in_exp_pools(struct function *cfun)
 	// TODO
 	// iterate over all pool_out and pool_out_prev 
 	// return false only if they are all the same
-	return true;
+	static int i = 0;
+	if (i++ <= 10)
+		return true;
+	else return false;
 }
 
 static void set_in_pool(gimple_stmt_iterator gsi, basic_block bb)
@@ -188,23 +191,40 @@ static void set_in_pool(gimple_stmt_iterator gsi, basic_block bb)
 	}
 }
 
-static void set_out_pool(gimple stmt)
-{
-	// call transfer function
-	transfer((exp_poolset*) *pointer_map_contains(map, stmt));
-}
-
 static void do_confluence(gsi_stmt_iterator gsi, basic_block bb)
 {
 	fprintf(stdout, "Reached confluence.\n");
 	// TODO
 }
 
-static void transfer(exp_poolset* poolset)
+static void set_out_pool(gimple stmt)
 {
+	// call transfer function
+	transfer(stmt);
+}
+
+static void transfer(gimple stmt)
+{
+	exp_poolset* poolset = (exp_poolset*) *pointer_map_contains(map, stmt);
 	tree *temp_pool[POOLMAX];
+	int lclass=-1, rclass=-1;
 	for (int i=0; i<POOLMAX; i++)
 		temp_pool[i] = (poolset->in)[i];
+
+	if (is_gimple_assign(stmt)) { // x = e
+		tree x = gimple_assign_lhs(stmt);
+		if ( (lclass = find(x, temp_pool)) > -1) {
+			remove_from_class(x, lclass, temp_pool);
+			delete_singletons(temp_pool);
+		}
+		tree e_ve = value_exp_rhs(stmt);
+		if ( (class = find(e_ve, temp_pool)) > -1 ) {
+			add_to_class(x, rclass, temp_pool);
+		}
+		else {
+			create_new_class(temp_pool, x, e_ve); // create a new value number as well
+		}
+	}
 }
 
 //static unsigned int copy_propagation (void)
