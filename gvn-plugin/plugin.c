@@ -14,6 +14,8 @@
 #include "tree-pass.h"
 #include "toplev.h"
 
+#define POOLMAX 30
+
 /*-----------------------------------------------------------------------------
  *  Each plugin MUST define this global int to assert compatibility with GPL; 
  *  else the compiler throws a fatal error 
@@ -30,14 +32,16 @@ int plugin_is_GPL_compatible;
 //
 //const_val_container * cp;
 
-// TODO all expressions should be accessible together, modify this
-// OR there should be a way to compare current EOUT with previous.
-typedef struct expression_pool
-{
-	tree pool_in[][100];
-	tree pool_out[][100];
+struct pointe_map_t *map;
 
-}exp_pool;
+/* Data structure holding expression pools at a node - first element is vn */
+typedef struct
+{
+	tree *in;         /* EIN */
+	tree **out;       /* EOUT */
+	tree **out_prev;  /* EOUT in the previous iteration */
+
+} exp_pool;
 
 gimple_stmt_iterator gsi;
 
@@ -118,6 +122,7 @@ plugin_init(struct plugin_name_args *plugin_info,
 static unsigned int do_gvn (void)
 {
 	basic_block bb;
+	map = pointer_map_create();
 
 	if (!dump_file)
 		return;
@@ -126,26 +131,82 @@ static unsigned int do_gvn (void)
 	FOR_EACH_BB_FN (bb, cfun)
 	{
 		for (gsi = gsi_start_bb (bb); !gsi_end_p (gsi); gsi_next(&gsi))
-			initialize_exp_pool (gsi); /* TODO EOUTn = T (except for entry node) */
+			initialize_exp_pool (gsi_stmt(gsi)); /* EOUTn = T */
 	}
 
-	while ( !change_in_exp_pools(cfun) )
+	while ( change_in_exp_pools(cfun) )
 	{
 		FOR_EACH_BB_FN (bb, cfun)
 		{
 			for (gsi = gsi_start_bb (bb); !gsi_end_p (gsi); gsi_next(&gsi))
 			{
-				set_in_pool(gsi); /* EINn = ^ EOUTp where p in pred(n) */
-				set_out_pool(gsi); /* EOUTn = fn(EINn) */
+				set_in_pool(gsi, bb); /* EINn = ^ EOUTp where p in pred(n) */
+				set_out_pool(gimple_stmt(gsi)); /* EOUTn = fn(EINn) */
 			}
 		}
 	}
 }
 
-static void set_out_pool(gimple_stmt_iterator gsi)
+static void initialize_exp_pool(gimple stmt)
 {
-	tree Et[][100];
+	exp_pool *pool_at_stmt = (exp_pool *) ggc_alloc_cleared_atomic(sizeof(exp_pool));
+	if (pool_at_stmt)
+		*pointer_map_insert(map, stmt) = (void *) pool_at_stmt;
+	else
+		fprintf(stdout, "Initializing memory failed!\n");
+
+	// assign an arbitrary value or null to all pools.
+	/* */
+	tree *T = NULL;
+	fprintf(stdout, "Initializing with T\n");
+	pool_at_stmt->out = (tree **) ggc_alloc_cleared_atomic(POOLMAX*sizeof(tree*));
+	for (int i=0; i<POOLMAX; i++) {
+		(pool_at_stmt->out)[i] = T;
+	}
+	// */
 }
+
+static bool change_in_exp_pools(struct function *cfun)
+{
+	// TODO
+	// iterate over all pool_out and pool_out_prev 
+	// return false only if they are all the same
+	return true;
+}
+
+static void set_in_pool(gimple_stmt_iterator gsi, basic_block bb)
+{
+	gsi_stmt_iterator gsiprev = gsi;
+	// TODO
+	// if not block_start do a simple copy from eout(p) to ein(n)
+	// do confluence otherwise
+	if (gsi_stmt(gsi_start_bb(bb)) == gsi_stmt(gsi))
+		do_confluence(gsi, bb);
+	else {
+		gsi_prev(&gsiprev);
+		*pointer_map_contains(map, gsi_stmt(gsi))->in = *pointer_map_contains(map, gsi_stmt(gsiprev))->out;
+	}
+}
+
+static void set_out_pool(gimple stmt)
+{
+	// call transfer function
+	transfer((exp_pool*) *pointer_map_contains(map, stmt));
+}
+
+static void do_confluence(gsi_stmt_iterator gsi, basic_block bb)
+{
+	fprintf(stdout, "Reached confluence.\n");
+	// TODO
+}
+
+static void transfer(exp_pool* pool)
+{
+	tree *temp_pool[POOLMAX];
+	for (int i=0; i<POOLMAX; i++)
+		temp_pool[i] = (pool->in)[i];
+}
+
 //static unsigned int copy_propagation (void)
 //{
 //        basic_block bb;
