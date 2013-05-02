@@ -34,12 +34,18 @@ int plugin_is_GPL_compatible;
 
 struct pointer_map_t *map;
 
+typedef struct node
+{
+	tree *exp;
+	struct node *next;
+} exp_node;
+
 /* Data structure holding expression pools at a node - first element is vn */
 typedef struct
 {
-	tree **in;             /* EIN */
-	tree *out[POOLMAX];    /* EOUT */
-	tree **out_prev;       /* EOUT in the previous iteration */
+	exp_node in[POOLMAX];       /* EIN */
+	exp_node out[POOLMAX];      /* EOUT */
+	exp_node out_prev[POOLMAX]; /* EOUT in the previous iteration */
 
 } exp_poolset;
 
