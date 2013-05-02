@@ -39,6 +39,7 @@ struct exp_poolset
 };
 
 gimple_stmt_iterator gsi;
+tree T;
 
 /*function declarations*/
 static unsigned int do_gvn (void);
@@ -161,13 +162,15 @@ static void initialize_exp_poolset(gimple stmt)
 		*pointer_map_insert(map, stmt) = (void *) poolset;
 	else
 		fprintf(stdout, "Initializing memory failed!\n");
-
 	/* */
 	// assign an arbitrary value or null to all pools.
-	tree T = build0();
+	T = create_tmp_var(integer_type_node, "vn");
 	for (i=0; i<POOLMAX; i++) {
-		(poolset->out)[i].exp = T;
-		(poolset->out_prev)[i].exp = T;
+		(poolset->out)[i] = ggc_alloc_cleared_atomic(sizeof(struct node));
+		(poolset->out)[i]->exp = T;
+		(poolset->out_prev)[i] = ggc_alloc_cleared_atomic(sizeof(struct node));
+		(poolset->out_prev)[i]->exp = T;
+		(poolset->in)[i] = ggc_alloc_cleared_atomic(sizeof(struct node));
 	}
 	// */
 }
