@@ -269,13 +269,13 @@ static void transfer(gimple stmt)
 		else {
 			create_new_class(temp_pool, x, e_ve); // create a new value number as well
 		}
+		for (i=0;i<POOLMAX;i++)
+			((struct exp_poolset *) *pointer_map_contains(map, gsi_stmt(gsi)))->out[i] = clone_list(temp_pool[i]);
 	}
 	else {
-		for (i=0;i<POOLMAX;i++) {
+		for (i=0;i<POOLMAX;i++)
 			((struct exp_poolset *) *pointer_map_contains(map, gsi_stmt(gsi)))->out[i] = clone_list(((struct exp_poolset*) *pointer_map_contains(map, gsi_stmt(gsi)))->in[i]);
-		}
 	}
-	// TODO EOUT = temp_pool
 }
 
 static int find_class(tree t, struct node **pool)
