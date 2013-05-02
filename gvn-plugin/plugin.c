@@ -43,9 +43,9 @@ struct node
 /* Data structure holding expression pools at a node - first element is vn */
 struct exp_poolset
 {
-	struct node in[POOLMAX];       /* EIN */
-	struct node out[POOLMAX];      /* EOUT */
-	struct node out_prev[POOLMAX]; /* EOUT in the previous iteration */
+	struct node *in[POOLMAX];       /* EIN */
+	struct node *out[POOLMAX];      /* EOUT */
+	struct node *out_prev[POOLMAX]; /* EOUT in the previous iteration */
 };
 
 gimple_stmt_iterator gsi;
@@ -55,15 +55,16 @@ static unsigned int do_gvn (void);
 static void initialize_exp_poolset(gimple stmt);
 static bool change_in_exp_pools();
 static void set_in_pool(gimple_stmt_iterator gsi, basic_block bb);
+static struct node *clone_list(struct node *list);
 static void do_confluence(gimple_stmt_iterator gsi, basic_block bb);
 static void set_out_pool(gimple stmt);
 static void transfer(gimple stmt);
-static int find_class(tree t, struct node pool[]);
-static void remove_from_class(tree t, int class, struct node pool[]);
-static void delete_singletons(struct node pool[]);
+static int find_class(tree t, struct node **pool);
+static void remove_from_class(tree t, int class, struct node **pool);
+static void delete_singletons(struct node **pool);
 static tree value_exp_rhs(gimple stmt);
-static void add_to_class(tree t, int class, struct node pool[]);
-static void create_new_class(struct node pool[], tree t, tree e_ve);
+static void add_to_class(tree t, int class, struct node **pool);
+static void create_new_class(struct node **pool, tree t, tree e_ve);
 //static unsigned int copy_propagation (void);
 //static void analyze_gimple_statement (gimple);
 //static const_val_container * allocate_container (tree, int, tree);
@@ -151,8 +152,7 @@ static unsigned int do_gvn (void)
 			initialize_exp_poolset (gsi_stmt(gsi)); /* EOUTn = T */
 	}
 
-	while ( change_in_exp_pools() )
-	{
+	do {
 		FOR_EACH_BB_FN (bb, cfun)
 		{
 			for (gsi = gsi_start_bb (bb); !gsi_end_p (gsi); gsi_next(&gsi))
@@ -161,7 +161,8 @@ static unsigned int do_gvn (void)
 				set_out_pool(gsi_stmt(gsi)); /* EOUTn = fn(EINn) */
 			}
 		}
-	}
+	} while ( change_in_exp_pools() );
+
 }
 
 static void initialize_exp_poolset(gimple stmt)
@@ -173,13 +174,12 @@ static void initialize_exp_poolset(gimple stmt)
 	else
 		fprintf(stdout, "Initializing memory failed!\n");
 
+	/* *
 	// assign an arbitrary value or null to all pools.
-	/* */
 	tree T = NULL;
-	fprintf(stdout, "Initializing with T\n");
-	//poolset->out = (tree **) ggc_alloc_cleared_atomic(POOLMAX*sizeof(tree*));
 	for (i=0; i<POOLMAX; i++) {
 		(poolset->out)[i].exp = T;
+		(poolset->out_prev)[i].exp = T;
 	}
 	// */
 }
@@ -189,10 +189,22 @@ static bool change_in_exp_pools()
 	// TODO
 	// iterate over all pool_out and pool_out_prev 
 	// return false only if they are all the same
-	static int i = 0;
-	if (i++ <= 10)
-		return true;
-	else return false;
+	basic_block bb;
+	int i;
+	struct node **out, **prev;
+	FOR_EACH_BB_FN (bb, cfun)
+	{
+		for (gsi = gsi_start_bb (bb); !gsi_end_p (gsi); gsi_next(&gsi))
+		{
+			out = ((struct exp_poolset *) *pointer_map_contains(map, gsi_stmt(gsi)))->out;
+			prev = ((struct exp_poolset *) *pointer_map_contains(map, gsi_stmt(gsi)))->out_prev;
+			for (i=0; i<POOLMAX; i++) {
+				if ((*out[i]).exp != (*prev[i]).exp)
+					return true;
+			}
+		}
+	}
+	return false;
 }
 
 static void set_in_pool(gimple_stmt_iterator gsi, basic_block bb)
@@ -205,11 +217,22 @@ static void set_in_pool(gimple_stmt_iterator gsi, basic_block bb)
 	if (gsi_stmt(gsi_start_bb(bb)) == gsi_stmt(gsi))
 		do_confluence(gsi, bb);
 	else {
+		fprintf(stdout, "non-block-start gimple reached.\n");
 		gsi_prev(&gsiprev);
 		for (i=0;i<POOLMAX;i++) {
-			((struct exp_poolset *) *pointer_map_contains(map, gsi_stmt(gsi)))->in[i].exp = ((struct exp_poolset*) *pointer_map_contains(map, gsi_stmt(gsiprev)))->out[i].exp;
+			((struct exp_poolset *) *pointer_map_contains(map, gsi_stmt(gsi)))->in[i] = clone_list(((struct exp_poolset*) *pointer_map_contains(map, gsi_stmt(gsiprev)))->out[i]);
 		}
 	}
+}
+
+static struct node *clone_list(struct node *list)
+{
+	if (list == NULL)
+		return NULL;
+	struct node *copy = ggc_alloc_cleared_atomic(sizeof(struct node));
+	copy->exp = list->exp;
+	copy->next = clone_list(list->next);
+	return copy;
 }
 
 static void do_confluence(gimple_stmt_iterator gsi, basic_block bb)
@@ -227,11 +250,11 @@ static void set_out_pool(gimple stmt)
 static void transfer(gimple stmt)
 {
 	struct exp_poolset* poolset = *pointer_map_contains(map, stmt);
-	struct node temp_pool[POOLMAX];
+	struct node *temp_pool[POOLMAX];
 	int lclass=-1, rclass=-1;
 	int i;
 	for (i=0; i<POOLMAX; i++)
-		temp_pool[i] = (poolset->in)[i];
+		temp_pool[i] = clone_list((poolset->in)[i]);
 
 	if (is_gimple_assign(stmt)) { // x = e
 		tree x = gimple_assign_lhs(stmt);
@@ -247,14 +270,19 @@ static void transfer(gimple stmt)
 			create_new_class(temp_pool, x, e_ve); // create a new value number as well
 		}
 	}
+	else {
+		for (i=0;i<POOLMAX;i++) {
+			((struct exp_poolset *) *pointer_map_contains(map, gsi_stmt(gsi)))->out[i] = clone_list(((struct exp_poolset*) *pointer_map_contains(map, gsi_stmt(gsi)))->in[i]);
+		}
+	}
 	// TODO EOUT = temp_pool
 }
 
-static int find_class(tree t, struct node pool[])
+static int find_class(tree t, struct node **pool)
 {
 	int i;
 	for (i=0; i<POOLMAX; i++) {
-		struct node *temp = &pool[i];
+		struct node *temp = pool[i];
 		for (;temp; temp=temp->next)
 			if (temp->exp == t)
 				return i;
@@ -262,9 +290,9 @@ static int find_class(tree t, struct node pool[])
 	return -1;
 }
 
-static void remove_from_class(tree t, int class, struct node pool[])
+static void remove_from_class(tree t, int class, struct node **pool)
 {
-	struct node *temp = &pool[class];
+	struct node *temp = pool[class];
 	struct node *tofree;
 	for (;temp->next; temp=temp->next)
 		if (temp->next->exp == t) {
@@ -277,13 +305,13 @@ static void remove_from_class(tree t, int class, struct node pool[])
 		temp->exp = NULL; // TODO verify logic
 }
 
-static void delete_singletons(struct node pool[])
+static void delete_singletons(struct node **pool)
 {
 	// TODO logic needs work, have to delete ve's containing singleton too
 	int i, flag = 0; // flag = 1 means the pool is singleton free
 	for (i=0; i<POOLMAX; i++) {
-		if (pool[i].exp && pool[i].next == NULL) {
-			remove_from_class(pool[i].exp, i, pool);
+		if (pool[i]->exp && pool[i]->next == NULL) {
+			remove_from_class(pool[i]->exp, i, pool);
 		}
 	}
 }
@@ -294,9 +322,9 @@ static tree value_exp_rhs(gimple stmt)
 	return NULL;
 }
 
-static void add_to_class(tree t, int class, struct node pool[])
+static void add_to_class(tree t, int class, struct node **pool)
 {
-	struct node *temp = &pool[class];
+	struct node *temp = pool[class];
 	struct node *new = ggc_alloc_cleared_atomic(sizeof(struct node));
 	new->exp = t;
 	new->next = NULL;
@@ -305,20 +333,20 @@ static void add_to_class(tree t, int class, struct node pool[])
 	temp->next = new;
 }
 
-static void create_new_class(struct node pool[], tree x, tree e)
+static void create_new_class(struct node **pool, tree x, tree e)
 {
 	int i;
-	for (i=0;pool[i].exp!=NULL; i++)
+	for (i=0;pool[i]->exp!=NULL; i++)
 		;
 	struct node *xnode, *enode;
 	xnode = ggc_alloc_cleared_atomic(sizeof(struct node));
 	enode = ggc_alloc_cleared_atomic(sizeof(struct node));
 	tree vn;
-	pool[i].exp = vn;
+	pool[i]->exp = vn;
 	enode->exp = e;
 	xnode->exp = x;
 	xnode->next = enode;
-	pool[i].next = xnode;
+	pool[i]->next = xnode;
 }
 
 
