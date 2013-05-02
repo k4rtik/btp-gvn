@@ -66,6 +66,7 @@ static tree value_exp_rhs(gimple stmt);
 static void add_to_class(tree t, int class, struct node **pool);
 static void create_new_class(struct node **pool, tree t, tree e_ve);
 static void print_poolset(struct exp_poolset *poolset);
+static void print_pool(const char name[], struct node *pool[]);
 
 /*-----------------------------------------------------------------------------
  *  Structure of the pass we want to insert, identical to a regular ipa pass
@@ -153,6 +154,7 @@ static unsigned int do_gvn (void)
 			for (gsi = gsi_start_bb (bb); !gsi_end_p (gsi); gsi_next(&gsi))
 			{
 				set_in_pool(gsi, bb); /* EINn = ^ EOUTp where p in pred(n) */
+				fprintf(stdout, "back from in\n");
 				set_out_pool(gsi_stmt(gsi)); /* EOUTn = fn(EINn) */
 				print_poolset((struct exp_poolset *) *pointer_map_contains(map, gsi_stmt(gsi)));
 			}
@@ -172,7 +174,7 @@ static void initialize_exp_poolset(gimple stmt)
 
 	/* *
 	// assign an arbitrary value or null to all pools.
-	tree T = NULL;
+	tree T = build0();
 	for (i=0; i<POOLMAX; i++) {
 		(poolset->out)[i].exp = T;
 		(poolset->out_prev)[i].exp = T;
@@ -194,8 +196,11 @@ static bool change_in_exp_pools()
 		{
 			out = ((struct exp_poolset *) *pointer_map_contains(map, gsi_stmt(gsi)))->out;
 			prev = ((struct exp_poolset *) *pointer_map_contains(map, gsi_stmt(gsi)))->out_prev;
+			fprintf(stdout, "reached change_detector\n");
+			if (!out || !prev)
+				return  true;
 			for (i=0; i<POOLMAX; i++) {
-				if ((*out[i]).exp != (*prev[i]).exp)
+				if (out[i]->exp != prev[i]->exp)
 					return true;
 			}
 		}
@@ -223,8 +228,10 @@ static void set_in_pool(gimple_stmt_iterator gsi, basic_block bb)
 
 static struct node *clone_list(struct node *list)
 {
-	if (list == NULL)
+	if (list == NULL) {
+		fprintf(stdout, "NULL list encountered.\n");
 		return NULL;
+	}
 	struct node *copy = ggc_alloc_cleared_atomic(sizeof(struct node));
 	copy->exp = list->exp;
 	copy->next = clone_list(list->next);
@@ -252,12 +259,15 @@ static void transfer(gimple stmt)
 	for (i=0; i<POOLMAX; i++)
 		temp_pool[i] = clone_list((poolset->in)[i]);
 
+	fprintf(stdout, "reached tranfer\n");
+	print_pool("poolset_in", poolset->in);
 	if (is_gimple_assign(stmt)) { // x = e
 		tree x = gimple_assign_lhs(stmt);
 		if ( (lclass = find_class(x, temp_pool)) > -1) {
 			remove_from_class(x, lclass, temp_pool);
 			delete_singletons(temp_pool);
 		}
+		else { fprintf(stdout, "x not found!\n");  }
 		tree e_ve = value_exp_rhs(stmt);
 		if ( (rclass = find_class(e_ve, temp_pool)) > -1 ) {
 			add_to_class(x, rclass, temp_pool);
@@ -347,26 +357,19 @@ static void create_new_class(struct node **pool, tree x, tree e)
 
 static void print_poolset(struct exp_poolset *poolset)
 {
+	print_pool("EIN", poolset->in);
+	print_pool("EOUT", poolset->out);
+	print_pool("EOUT_PREV", poolset->out_prev);
+}
+
+static void print_pool(const char name[], struct node *pool[])
+{
 	int i;
 	struct node *temp;
-	fprintf(dump_file, "\n\nEIN(n):\n=======");
+	fprintf(dump_file, "\n\n%s(n):\n=============", name);
 	for (i=0; i<POOLMAX; i++) {
 		fprintf(dump_file, "\nClass %d: head ", i);
-		for (temp = (poolset->in)[i]; temp->exp; temp=temp->next) {
-			fprintf(dump_file, "-> %s", get_name(temp->exp));
-		}
-	}
-	fprintf(dump_file, "\n\nEOUT(n):\n========");
-	for (i=0; i<POOLMAX; i++) {
-		fprintf(dump_file, "\nClass %d: head ", i);
-		for (temp = (poolset->out)[i]; temp->exp; temp=temp->next) {
-			fprintf(dump_file, "-> %s", get_name(temp->exp));
-		}
-	}
-	fprintf(dump_file, "\n\nEOUT_PREV(n):\n=============");
-	for (i=0; i<POOLMAX; i++) {
-		fprintf(dump_file, "\nClass %d: head ", i);
-		for (temp = (poolset->out_prev)[i]; temp->exp; temp=temp->next) {
+		for (temp = pool[i]; temp->exp; temp=temp->next) {
 			fprintf(dump_file, "-> %s", get_name(temp->exp));
 		}
 	}
