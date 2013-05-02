@@ -22,16 +22,6 @@
  *-----------------------------------------------------------------------------*/
 int plugin_is_GPL_compatible;  
 
-/* A structure for storing constant values */
-//typedef struct const_val_container
-//{
-//        tree var, rhs1;
-//        int val;
-//        struct const_val_container * next;
-//}const_val_container;
-//
-//const_val_container * cp;
-
 struct pointer_map_t *map;
 
 struct node
@@ -172,7 +162,7 @@ static void initialize_exp_poolset(gimple stmt)
 	else
 		fprintf(stdout, "Initializing memory failed!\n");
 
-	/* *
+	/* */
 	// assign an arbitrary value or null to all pools.
 	tree T = build0();
 	for (i=0; i<POOLMAX; i++) {
