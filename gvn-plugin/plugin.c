@@ -65,6 +65,7 @@ static void delete_singletons(struct node **pool);
 static tree value_exp_rhs(gimple stmt);
 static void add_to_class(tree t, int class, struct node **pool);
 static void create_new_class(struct node **pool, tree t, tree e_ve);
+static void print_poolset(struct exp_poolset *poolset);
 //static unsigned int copy_propagation (void);
 //static void analyze_gimple_statement (gimple);
 //static const_val_container * allocate_container (tree, int, tree);
@@ -349,6 +350,32 @@ static void create_new_class(struct node **pool, tree x, tree e)
 	pool[i]->next = xnode;
 }
 
+static void print_poolset(struct exp_poolset *poolset)
+{
+	int i;
+	struct node *temp;
+	fprintf(dumpfile, "\n\nEIN(n):\n=======");
+	for (i=0; i<POOLMAX; i++) {
+		fprintf(dumpfile, "\nClass %d: head ", i);
+		for (temp = (poolset->in)[i]; temp->exp; temp=temp->next) {
+			fprintf(dumpfile, "-> %s", get_name(temp-exp));
+		}
+	}
+	fprintf(dumpfile, "\n\nEOUT(n):\n========");
+	for (i=0; i<POOLMAX; i++) {
+		fprintf(dumpfile, "\nClass %d: head ", i);
+		for (temp = (poolset->out)[i]; temp->exp; temp=temp->next) {
+			fprintf(dumpfile, "-> %s", get_name(temp-exp));
+		}
+	}
+	fprintf(dumpfile, "\n\nEOUT_PREV(n):\n=============");
+	for (i=0; i<POOLMAX; i++) {
+		fprintf(dumpfile, "\nClass %d: head ", i);
+		for (temp = (poolset->in)[i]; temp->exp; temp=temp->next) {
+			fprintf(dumpfile, "-> %s", get_name(temp-exp));
+		}
+	}
+}
 
 //static unsigned int copy_propagation (void)
 //{
