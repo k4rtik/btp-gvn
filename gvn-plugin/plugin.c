@@ -44,6 +44,7 @@ tree T;
 /*function declarations*/
 static unsigned int do_gvn (void);
 static void initialize_exp_poolset(gimple stmt);
+static void process_out_prev_pool(gimple stmt);
 static bool change_in_exp_pools();
 static void set_in_pool(gimple_stmt_iterator gsi, basic_block bb);
 static struct node *clone_list(struct node *list);
@@ -132,7 +133,6 @@ static unsigned int do_gvn (void)
 	basic_block bb;
 	map = pointer_map_create();
 	T = create_tmp_var(integer_type_node, "t");
-	int count = 0;
 
 	if (!dump_file)
 		return;
@@ -149,13 +149,14 @@ static unsigned int do_gvn (void)
 		{
 			for (gsi = gsi_start_bb (bb); !gsi_end_p (gsi); gsi_next(&gsi))
 			{
+				process_out_prev_pool(gsi_stmt(gsi));
 				set_in_pool(gsi, bb); /* EINn = ^ EOUTp where p in pred(n) */
 				//fprintf(dump_file, "back from in\n");
 				set_out_pool(gsi_stmt(gsi)); /* EOUTn = fn(EINn) */
 				//print_poolset((struct exp_poolset *) *pointer_map_contains(map, gsi_stmt(gsi)));
 			}
 		}
-	} while ( change_in_exp_pools() && ++count<20);
+	} while ( change_in_exp_pools() );
 
 }
 
@@ -180,6 +181,13 @@ static void initialize_exp_poolset(gimple stmt)
 	// */
 }
 
+static void process_out_prev_pool(gimple stmt)
+{
+	int i;
+	for (i=0;i<POOLMAX;i++)
+		((struct exp_poolset *) *pointer_map_contains(map, stmt))->out_prev[i] = clone_list(((struct exp_poolset*) *pointer_map_contains(map, stmt))->out[i]);
+}
+
 static bool change_in_exp_pools()
 {
 	// TODO
@@ -188,21 +196,30 @@ static bool change_in_exp_pools()
 	basic_block bb;
 	int i;
 	struct node **out, **prev;
+	struct node *outtemp, *prevtemp;
 	FOR_EACH_BB_FN (bb, cfun)
 	{
 		for (gsi = gsi_start_bb (bb); !gsi_end_p (gsi); gsi_next(&gsi))
 		{
 			out = ((struct exp_poolset *) *pointer_map_contains(map, gsi_stmt(gsi)))->out;
 			prev = ((struct exp_poolset *) *pointer_map_contains(map, gsi_stmt(gsi)))->out_prev;
-			//fprintf(dump_file, "reached change_detector\n");
+			fprintf(dump_file, "\nReached change_detector\n");
+			//print_pool("prev", prev);
+			//print_pool("out", out);
+
 			if (!out || !prev)
 				return  true;
 			for (i=0; i<POOLMAX; i++) {
-				if (out[i]->exp != prev[i]->exp)
+				if (!(prev[i]->next) && out[i]->next)
 					return true;
+				for (outtemp=out[i], prevtemp=prev[i]; outtemp->next && prevtemp->next; outtemp=outtemp->next, prevtemp=prevtemp->next) {
+					if ((outtemp->next->exp != prevtemp->next->exp) && !(get_gimple_rhs_class(TREE_CODE(prevtemp->next->exp)) == GIMPLE_BINARY_RHS))
+						return true;
+				}
 			}
 		}
 	}
+	fprintf(dump_file, "\nAnd we terminate finally!\n");
 	return false;
 }
 
@@ -261,12 +278,12 @@ static void transfer(gimple stmt)
 	if (is_gimple_assign(stmt)) { // x = e
 		tree x = gimple_assign_lhs(stmt);
 		if ( (lclass = find_vn_class(x, temp_pool)) > -1) {
-			fprintf(dump_file, "%s found!\n", get_name(x));
+			fprintf(dump_file, "\n%s found!\n", get_name(x));
 			remove_from_class(x, lclass, temp_pool);
 			delete_singletons(temp_pool);
 			//fprintf(dump_file, "back from singleton-deletion\n");
 		} else
-			fprintf(dump_file, "%s not found!\n", get_name(x));
+			fprintf(dump_file, "\n%s not found!\n", get_name(x));
 
 		tree e_ve = value_exp_rhs(stmt, temp_pool);
 		/**
@@ -455,7 +472,7 @@ static void print_pool(const char name[], struct node *pool[])
 {
 	int i;
 	struct node *temp;
-	fprintf(dump_file, "\n\n%s(n):\n=============", name);
+	fprintf(dump_file, "\n%s(n):\n=============", name);
 	for (i=0; i<POOLMAX; i++) {
 		fprintf(dump_file, "\nClass %d ", i);
 		for (temp = pool[i]; temp && temp->exp; temp=temp->next) {
