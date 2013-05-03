@@ -315,7 +315,7 @@ static void remove_from_class(tree t, int class, struct node *pool[])
 static void delete_singletons(struct node *pool[])
 {
 	// TODO logic needs work, have to delete ve's containing singleton too
-	int i, flag = 0; // flag = 1 means the pool is singleton free
+	int i;
 	for (i=0; i<POOLMAX; i++) {
 		if (pool[i]->exp && pool[i]->next == NULL) {
 			remove_from_class(pool[i]->exp, i, pool);
