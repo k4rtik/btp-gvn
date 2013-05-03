@@ -152,7 +152,8 @@ static unsigned int do_gvn (void)
 				set_in_pool(gsi, bb); /* EINn = ^ EOUTp where p in pred(n) */
 				//fprintf(dump_file, "back from in\n");
 				set_out_pool(gsi_stmt(gsi)); /* EOUTn = fn(EINn) */
-				//print_poolset((struct exp_poolset *) *pointer_map_contains(map, gsi_stmt(gsi)));
+				/*print_poolset((struct exp_poolset *) 
+						*pointer_map_contains(map, gsi_stmt(gsi)));*/
 			}
 		}
 	} while ( change_in_exp_pools() );
@@ -184,7 +185,8 @@ static void process_out_prev_pool(gimple stmt)
 {
 	int i;
 	for (i=0;i<POOLMAX;i++)
-		((struct exp_poolset *) *pointer_map_contains(map, stmt))->out_prev[i] = clone_list(((struct exp_poolset*) *pointer_map_contains(map, stmt))->out[i]);
+		((struct exp_poolset *) *pointer_map_contains(map, stmt))->out_prev[i] =
+			clone_list(((struct exp_poolset*) *pointer_map_contains(map, stmt))->out[i]);
 }
 
 static bool change_in_exp_pools()
@@ -208,8 +210,12 @@ static bool change_in_exp_pools()
 			for (i=0; i<POOLMAX; i++) {
 				if (!(prev[i]->next) && out[i]->next)
 					return true;
-				for (outtemp=out[i], prevtemp=prev[i]; outtemp->next && prevtemp->next; outtemp=outtemp->next, prevtemp=prevtemp->next) {
-					if ((outtemp->next->exp != prevtemp->next->exp) && !(get_gimple_rhs_class(TREE_CODE(prevtemp->next->exp)) == GIMPLE_BINARY_RHS))
+				for (outtemp=out[i], prevtemp=prev[i];
+						outtemp->next && prevtemp->next;
+						outtemp=outtemp->next, prevtemp=prevtemp->next) {
+					if ((outtemp->next->exp != prevtemp->next->exp)
+							&& !(get_gimple_rhs_class(TREE_CODE(prevtemp->next->exp))
+								== GIMPLE_BINARY_RHS))
 						return true;
 				}
 			}
@@ -231,7 +237,9 @@ static void set_in_pool(gimple_stmt_iterator gsi, basic_block bb)
 		//fprintf(dump_file, "non-block-start gimple reached.\n");
 		gsi_prev(&gsiprev);
 		for (i=0;i<POOLMAX;i++) {
-			((struct exp_poolset *) *pointer_map_contains(map, gsi_stmt(gsi)))->in[i] = clone_list(((struct exp_poolset*) *pointer_map_contains(map, gsi_stmt(gsiprev)))->out[i]);
+			((struct exp_poolset *) *pointer_map_contains(map, gsi_stmt(gsi)))->in[i] =
+				clone_list(((struct exp_poolset*) *pointer_map_contains(map,
+								gsi_stmt(gsiprev)))->out[i]);
 		}
 	}
 }
@@ -282,7 +290,9 @@ static void transfer(gimple stmt)
 		tree e_ve = value_exp_rhs(stmt, temp_pool);
 		/**
 		if (TREE_CODE(e_ve) == INTEGER_CST)
-			fprintf(dump_file, "e_ve = %lu\n", ((TREE_INT_CST_HIGH (e_ve) << HOST_BITS_PER_WIDE_INT) + TREE_INT_CST_LOW (e_ve)));
+			fprintf(dump_file, "e_ve = %lu\n",
+					((TREE_INT_CST_HIGH (e_ve) << HOST_BITS_PER_WIDE_INT)
+					 + TREE_INT_CST_LOW (e_ve)));
 		else
 			fprintf(dump_file, "e_ve = %s\n", get_name(e_ve));
 		// */
@@ -291,15 +301,18 @@ static void transfer(gimple stmt)
 			add_to_class(x, rclass, temp_pool);
 		}
 		else {
-			create_new_class(temp_pool, x, e_ve); // create a new value number as well
+			create_new_class(temp_pool, x, e_ve);
 			print_pool("temp with new class", temp_pool);
 		}
 		for (i=0;i<POOLMAX;i++)
-			((struct exp_poolset *) *pointer_map_contains(map, gsi_stmt(gsi)))->out[i] = clone_list(temp_pool[i]);
+			((struct exp_poolset *) *pointer_map_contains(map, gsi_stmt(gsi)))->out[i] =
+				clone_list(temp_pool[i]);
 	}
 	else {
 		for (i=0;i<POOLMAX;i++)
-			((struct exp_poolset *) *pointer_map_contains(map, gsi_stmt(gsi)))->out[i] = clone_list(((struct exp_poolset*) *pointer_map_contains(map, gsi_stmt(gsi)))->in[i]);
+			((struct exp_poolset *) *pointer_map_contains(map, gsi_stmt(gsi)))->out[i] =
+				clone_list(((struct exp_poolset*) *pointer_map_contains(map,
+								gsi_stmt(gsi)))->in[i]);
 	}
 }
 
@@ -323,10 +336,13 @@ static int find_ve_class(enum tree_code code, tree rhs1, tree rhs2, struct node 
 		struct node *temp = pool[i];
 		for (; temp && temp->exp; temp=temp->next) {
 			//fprintf(dump_file, "%u, ", TREE_CODE(temp->exp));
-			if (TREE_CODE(temp->exp) == INTEGER_CST || TREE_CODE(temp->exp) == VAR_DECL)
+			if (TREE_CODE(temp->exp) == INTEGER_CST
+					|| TREE_CODE(temp->exp) == VAR_DECL)
 				continue;
 			else {
-				if (TREE_OPERAND(temp->exp,0) == rhs1 && TREE_OPERAND(temp->exp,1) == rhs2 && TREE_CODE(temp->exp) == code)
+				if (TREE_OPERAND(temp->exp,0) == rhs1
+						&& TREE_OPERAND(temp->exp,1) == rhs2
+						&& TREE_CODE(temp->exp) == code)
 					return i;
 			}
 		}
@@ -340,9 +356,11 @@ static int remove_ve_from_pool(tree t, struct node* pool[])
 	for (i=0; i<POOLMAX; i++) {
 		struct node *temp = pool[i];
 		for (; temp->next; temp=temp->next) {
-			if (TREE_CODE(temp->next->exp) == INTEGER_CST || TREE_CODE(temp->next->exp) == VAR_DECL)
+			if (TREE_CODE(temp->next->exp) == INTEGER_CST
+					|| TREE_CODE(temp->next->exp) == VAR_DECL)
 				continue;
-			else if (TREE_OPERAND(temp->next->exp, 0) == t || TREE_OPERAND(temp->next->exp, 1) == t) {
+			else if (TREE_OPERAND(temp->next->exp, 0) == t
+					|| TREE_OPERAND(temp->next->exp, 1) == t) {
 				temp->next = temp->next->next;
 				flag = 1;
 				print_pool("Just deleted a ve", pool);
@@ -472,16 +490,22 @@ static void print_pool(const char name[], struct node *pool[])
 		for (temp = pool[i]; temp && temp->exp; temp=temp->next) {
 			switch (TREE_CODE(temp->exp)) {
 				case INTEGER_CST:
-					fprintf(dump_file, "-> %lu ", ((TREE_INT_CST_HIGH (temp->exp) << HOST_BITS_PER_WIDE_INT) + TREE_INT_CST_LOW (temp->exp)));
+					fprintf(dump_file, "-> %lu ",
+							((TREE_INT_CST_HIGH (temp->exp) << HOST_BITS_PER_WIDE_INT)
+							 + TREE_INT_CST_LOW (temp->exp)));
 					break;
 				case VAR_DECL:
 					fprintf(dump_file, "-> %s ", get_name(temp->exp));
 					break;
 				case PLUS_EXPR:
-					fprintf(dump_file, "-> %s + %s ", get_name(TREE_OPERAND(temp->exp, 0)), get_name(TREE_OPERAND(temp->exp, 1)));
+					fprintf(dump_file, "-> %s + %s ",
+							get_name(TREE_OPERAND(temp->exp, 0)),
+							get_name(TREE_OPERAND(temp->exp, 1)));
 					break;
 				case MINUS_EXPR:
-					fprintf(dump_file, "-> %s - %s ", get_name(TREE_OPERAND(temp->exp, 0)), get_name(TREE_OPERAND(temp->exp, 1)));
+					fprintf(dump_file, "-> %s - %s ",
+							get_name(TREE_OPERAND(temp->exp, 0)),
+							get_name(TREE_OPERAND(temp->exp, 1)));
 					break;
 				default:
 					fprintf(dump_file, "-> UNKNOWN_TYPE ");
