@@ -55,7 +55,7 @@ static void remove_from_class(tree t, int class, struct node *pool[]);
 static void delete_singletons(struct node **pool);
 static tree value_exp_rhs(gimple stmt);
 static void add_to_class(tree t, int class, struct node *pool[]);
-static void create_new_class(struct node **pool, tree t, tree e_ve);
+static void create_new_class(struct node *pool[], tree t, tree e_ve);
 static void print_poolset(struct exp_poolset *poolset);
 static void print_pool(const char name[], struct node *pool[]);
 
@@ -301,9 +301,11 @@ static int find_class(tree t, struct node *pool[])
 static void remove_from_class(tree t, int class, struct node *pool[])
 {
 	struct node *temp = pool[class];
+	if (temp->exp == t) {
+		temp->exp = NULL;
+	}
 	for (;temp->next; temp=temp->next)
 		if (temp->next->exp == t) {
-			tofree = temp->next;
 			temp->next = temp->next->next;
 			print_pool("Just deleted", pool);
 			return;
@@ -351,7 +353,7 @@ static void add_to_class(tree t, int class, struct node **pool)
 	temp->next = new;
 }
 
-static void create_new_class(struct node **pool, tree x, tree e)
+static void create_new_class(struct node *pool[], tree x, tree e)
 {
 	int i;
 	for (i=0;pool[i]->exp!=NULL; i++)
