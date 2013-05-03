@@ -137,7 +137,6 @@ static unsigned int do_gvn (void)
 	if (!dump_file)
 		return;
 
-	// TODO EOUT_entry = PHI
 	FOR_EACH_BB_FN (bb, cfun)
 	{
 		for (gsi = gsi_start_bb (bb); !gsi_end_p (gsi); gsi_next(&gsi))
@@ -190,9 +189,6 @@ static void process_out_prev_pool(gimple stmt)
 
 static bool change_in_exp_pools()
 {
-	// TODO
-	// iterate over all pool_out and pool_out_prev 
-	// return false only if they are all the same
 	basic_block bb;
 	int i;
 	struct node **out, **prev;
@@ -227,7 +223,6 @@ static void set_in_pool(gimple_stmt_iterator gsi, basic_block bb)
 {
 	gimple_stmt_iterator gsiprev = gsi;
 	int i;
-	// TODO
 	// if not block_start do a simple copy from eout(p) to ein(n)
 	// do confluence otherwise
 	if (gsi_stmt(gsi_start_bb(bb)) == gsi_stmt(gsi))
@@ -260,7 +255,6 @@ static void do_confluence(gimple_stmt_iterator gsi, basic_block bb)
 
 static void set_out_pool(gimple stmt)
 {
-	// call transfer function
 	transfer(stmt);
 }
 
