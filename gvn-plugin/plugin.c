@@ -186,7 +186,8 @@ static void process_out_prev_pool(gimple stmt)
 	int i;
 	for (i=0;i<POOLMAX;i++)
 		((struct exp_poolset *) *pointer_map_contains(map, stmt))->out_prev[i] =
-			clone_list(((struct exp_poolset*) *pointer_map_contains(map, stmt))->out[i]);
+			clone_list(((struct exp_poolset*)
+						*pointer_map_contains(map, stmt))->out[i]);
 }
 
 static bool change_in_exp_pools()
@@ -199,8 +200,10 @@ static bool change_in_exp_pools()
 	{
 		for (gsi = gsi_start_bb (bb); !gsi_end_p (gsi); gsi_next(&gsi))
 		{
-			out = ((struct exp_poolset *) *pointer_map_contains(map, gsi_stmt(gsi)))->out;
-			prev = ((struct exp_poolset *) *pointer_map_contains(map, gsi_stmt(gsi)))->out_prev;
+			out = ((struct exp_poolset *)
+					*pointer_map_contains(map, gsi_stmt(gsi)))->out;
+			prev = ((struct exp_poolset *)
+					*pointer_map_contains(map, gsi_stmt(gsi)))->out_prev;
 			fprintf(dump_file, "\nReached change_detector\n");
 			//print_pool("prev", prev);
 			//print_pool("out", out);
