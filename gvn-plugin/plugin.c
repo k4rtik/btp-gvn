@@ -50,11 +50,11 @@ static struct node *clone_list(struct node *list);
 static void do_confluence(gimple_stmt_iterator gsi, basic_block bb);
 static void set_out_pool(gimple stmt);
 static void transfer(gimple stmt);
-static int find_class(tree t, struct node **pool);
-static void remove_from_class(tree t, int class, struct node **pool);
+static int find_class(tree t, struct node *pool[]);
+static void remove_from_class(tree t, int class, struct node *pool[]);
 static void delete_singletons(struct node **pool);
 static tree value_exp_rhs(gimple stmt);
-static void add_to_class(tree t, int class, struct node **pool);
+static void add_to_class(tree t, int class, struct node *pool[]);
 static void create_new_class(struct node **pool, tree t, tree e_ve);
 static void print_poolset(struct exp_poolset *poolset);
 static void print_pool(const char name[], struct node *pool[]);
@@ -253,7 +253,7 @@ static void transfer(gimple stmt)
 		temp_pool[i] = clone_list((poolset->in)[i]);
 
 	fprintf(dump_file, "reached tranfer\n");
-	print_pool("poolset_in", poolset->in);
+	print_pool("temp_pool", temp_pool);
 	if (is_gimple_assign(stmt)) { // x = e
 		tree x = gimple_assign_lhs(stmt);
 		if ( (lclass = find_class(x, temp_pool)) > -1) {
@@ -285,7 +285,7 @@ static void transfer(gimple stmt)
 	}
 }
 
-static int find_class(tree t, struct node **pool)
+static int find_class(tree t, struct node *pool[])
 {
 	int i;
 	for (i=0; i<POOLMAX; i++) {
@@ -297,7 +297,7 @@ static int find_class(tree t, struct node **pool)
 	return -1;
 }
 
-static void remove_from_class(tree t, int class, struct node **pool)
+static void remove_from_class(tree t, int class, struct node *pool[])
 {
 	struct node *temp = pool[class];
 	struct node *tofree;
@@ -312,7 +312,7 @@ static void remove_from_class(tree t, int class, struct node **pool)
 		temp->exp = NULL; // TODO verify logic
 }
 
-static void delete_singletons(struct node **pool)
+static void delete_singletons(struct node *pool[])
 {
 	// TODO logic needs work, have to delete ve's containing singleton too
 	int i, flag = 0; // flag = 1 means the pool is singleton free
