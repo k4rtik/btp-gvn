@@ -50,7 +50,8 @@ static struct node *clone_list(struct node *list);
 static void do_confluence(gimple_stmt_iterator gsi, basic_block bb);
 static void set_out_pool(gimple stmt);
 static void transfer(gimple stmt);
-static int find_class(tree t, struct node *pool[]);
+static int find_vn_class(tree t, struct node *pool[]);
+static int find_ve_class(enum tree_code code, tree lhs, tree rhs, struct node *pool[]);
 static void remove_from_class(tree t, int class, struct node *pool[]);
 static void delete_singletons(struct node *pool[]);
 static tree value_exp_rhs(gimple stmt, struct node *pool[]);
@@ -258,7 +259,7 @@ static void transfer(gimple stmt)
 	print_pool("temp_pool", temp_pool);
 	if (is_gimple_assign(stmt)) { // x = e
 		tree x = gimple_assign_lhs(stmt);
-		if ( (lclass = find_class(x, temp_pool)) > -1) {
+		if ( (lclass = find_vn_class(x, temp_pool)) > -1) {
 			fprintf(dump_file, "%s found!\n", get_name(x));
 			remove_from_class(x, lclass, temp_pool);
 			delete_singletons(temp_pool);
@@ -273,7 +274,7 @@ static void transfer(gimple stmt)
 		else
 			fprintf(dump_file, "e_ve = %s\n", get_name(e_ve));
 
-		if ( (rclass = find_class(e_ve, temp_pool)) > -1 ) {
+		if ( (rclass = find_vn_class(e_ve, temp_pool)) > -1 ) {
 			add_to_class(x, rclass, temp_pool);
 		}
 		else {
@@ -289,7 +290,7 @@ static void transfer(gimple stmt)
 	}
 }
 
-static int find_class(tree t, struct node *pool[])
+static int find_vn_class(tree t, struct node *pool[])
 {
 	int i;
 	for (i=0; i<POOLMAX; i++) {
@@ -297,6 +298,25 @@ static int find_class(tree t, struct node *pool[])
 		for (;temp; temp=temp->next)
 			if (temp->exp == t)
 				return i;
+	}
+	return -1;
+}
+
+static int find_ve_class(enum tree_code code, tree rhs1, tree rhs2, struct node *pool[])
+{
+	int i;
+	fprintf(dump_file, "Check for %u\n", code);
+	for (i=0; i<POOLMAX; i++) {
+		struct node *temp = pool[i];
+		for (; temp && temp->exp; temp=temp->next) {
+			fprintf(dump_file, "%u, ", TREE_CODE(temp->exp));
+			if (TREE_CODE(temp->exp) == INTEGER_CST || TREE_CODE(temp->exp) == VAR_DECL)
+				continue;
+			else {
+				if (TREE_OPERAND(temp->exp,0) == rhs1 && TREE_OPERAND(temp->exp,1) == rhs2 && TREE_CODE(temp->exp) == code)
+					return i;
+			}
+		}
 	}
 	return -1;
 }
@@ -334,23 +354,25 @@ static tree value_exp_rhs(gimple stmt, struct node *pool[])
 	tree rhs2 = gimple_assign_rhs2(stmt);
 
 	int lclass = -1, rclass = -1;
+	int veclass = -1;
 
 	tree lvn, rvn;
 	enum tree_code code = gimple_assign_rhs_code(stmt);
 
 	switch (get_gimple_rhs_class(code)) {
 		case GIMPLE_SINGLE_RHS:
-			//fprintf(dump_file, "Single RHS: %d\n", ((TREE_INT_CST_HIGH (rhs1) << HOST_BITS_PER_WIDE_INT) + TREE_INT_CST_LOW (rhs1)));
 			return rhs1;
 		case GIMPLE_BINARY_RHS:
-			if ((lclass = find_class(rhs1, pool)) == -1)
+			if ((lclass = find_vn_class(rhs1, pool)) == -1)
 				create_new_class1(pool, rhs1);
 			lvn = pool[lclass]->exp;
-			if ((rclass = find_class(rhs2, pool)) == -1)
+			if ((rclass = find_vn_class(rhs2, pool)) == -1)
 				create_new_class1(pool, rhs2);
 			rvn = pool[rclass]->exp;
-			// build (code, lvn, rvn)
-			return build2(code, void_type_node, lvn, rvn);
+			if ((veclass = find_ve_class(code, lvn, rvn, pool)) > -1)
+				return pool[veclass]->exp;
+			else
+				return build2(code, void_type_node, lvn, rvn);
 	}
 }
 
