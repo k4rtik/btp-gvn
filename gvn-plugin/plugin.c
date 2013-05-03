@@ -52,6 +52,7 @@ static void set_out_pool(gimple stmt);
 static void transfer(gimple stmt);
 static int find_vn_class(tree t, struct node *pool[]);
 static int find_ve_class(enum tree_code code, tree lhs, tree rhs, struct node *pool[]);
+static int remove_ve_from_pool(tree t, struct node* pool[]);
 static void remove_from_class(tree t, int class, struct node *pool[]);
 static void delete_singletons(struct node *pool[]);
 static tree value_exp_rhs(gimple stmt, struct node *pool[]);
@@ -149,9 +150,9 @@ static unsigned int do_gvn (void)
 			for (gsi = gsi_start_bb (bb); !gsi_end_p (gsi); gsi_next(&gsi))
 			{
 				set_in_pool(gsi, bb); /* EINn = ^ EOUTp where p in pred(n) */
-				fprintf(dump_file, "back from in\n");
+				//fprintf(dump_file, "back from in\n");
 				set_out_pool(gsi_stmt(gsi)); /* EOUTn = fn(EINn) */
-				print_poolset((struct exp_poolset *) *pointer_map_contains(map, gsi_stmt(gsi)));
+				//print_poolset((struct exp_poolset *) *pointer_map_contains(map, gsi_stmt(gsi)));
 			}
 		}
 	} while ( change_in_exp_pools() && ++count<20);
@@ -193,7 +194,7 @@ static bool change_in_exp_pools()
 		{
 			out = ((struct exp_poolset *) *pointer_map_contains(map, gsi_stmt(gsi)))->out;
 			prev = ((struct exp_poolset *) *pointer_map_contains(map, gsi_stmt(gsi)))->out_prev;
-			fprintf(dump_file, "reached change_detector\n");
+			//fprintf(dump_file, "reached change_detector\n");
 			if (!out || !prev)
 				return  true;
 			for (i=0; i<POOLMAX; i++) {
@@ -215,7 +216,7 @@ static void set_in_pool(gimple_stmt_iterator gsi, basic_block bb)
 	if (gsi_stmt(gsi_start_bb(bb)) == gsi_stmt(gsi))
 		do_confluence(gsi, bb);
 	else {
-		fprintf(dump_file, "non-block-start gimple reached.\n");
+		//fprintf(dump_file, "non-block-start gimple reached.\n");
 		gsi_prev(&gsiprev);
 		for (i=0;i<POOLMAX;i++) {
 			((struct exp_poolset *) *pointer_map_contains(map, gsi_stmt(gsi)))->in[i] = clone_list(((struct exp_poolset*) *pointer_map_contains(map, gsi_stmt(gsiprev)))->out[i]);
@@ -252,10 +253,10 @@ static void transfer(gimple stmt)
 	struct node *temp_pool[POOLMAX];
 	int lclass=-1, rclass=-1;
 	int i;
-	for (i=0; i<POOLMAX; i++)
+	for (i=0; i<POOLMAX; i++) // E(t) = EIN(n)
 		temp_pool[i] = clone_list((poolset->in)[i]);
 
-	fprintf(dump_file, "reached tranfer\n");
+	//fprintf(dump_file, "reached tranfer\n");
 	print_pool("temp_pool", temp_pool);
 	if (is_gimple_assign(stmt)) { // x = e
 		tree x = gimple_assign_lhs(stmt);
@@ -263,23 +264,24 @@ static void transfer(gimple stmt)
 			fprintf(dump_file, "%s found!\n", get_name(x));
 			remove_from_class(x, lclass, temp_pool);
 			delete_singletons(temp_pool);
-			fprintf(dump_file, "back from singleton-deletion\n");
-		}
-		else
+			//fprintf(dump_file, "back from singleton-deletion\n");
+		} else
 			fprintf(dump_file, "%s not found!\n", get_name(x));
 
 		tree e_ve = value_exp_rhs(stmt, temp_pool);
+		/**
 		if (TREE_CODE(e_ve) == INTEGER_CST)
 			fprintf(dump_file, "e_ve = %lu\n", ((TREE_INT_CST_HIGH (e_ve) << HOST_BITS_PER_WIDE_INT) + TREE_INT_CST_LOW (e_ve)));
 		else
 			fprintf(dump_file, "e_ve = %s\n", get_name(e_ve));
+		// */
 
 		if ( (rclass = find_vn_class(e_ve, temp_pool)) > -1 ) {
 			add_to_class(x, rclass, temp_pool);
 		}
 		else {
 			create_new_class(temp_pool, x, e_ve); // create a new value number as well
-			print_pool("temp", temp_pool);
+			print_pool("temp with new class", temp_pool);
 		}
 		for (i=0;i<POOLMAX;i++)
 			((struct exp_poolset *) *pointer_map_contains(map, gsi_stmt(gsi)))->out[i] = clone_list(temp_pool[i]);
@@ -305,11 +307,11 @@ static int find_vn_class(tree t, struct node *pool[])
 static int find_ve_class(enum tree_code code, tree rhs1, tree rhs2, struct node *pool[])
 {
 	int i;
-	fprintf(dump_file, "Check for %u\n", code);
+	//fprintf(dump_file, "Check for %u\n", code);
 	for (i=0; i<POOLMAX; i++) {
 		struct node *temp = pool[i];
 		for (; temp && temp->exp; temp=temp->next) {
-			fprintf(dump_file, "%u, ", TREE_CODE(temp->exp));
+			//fprintf(dump_file, "%u, ", TREE_CODE(temp->exp));
 			if (TREE_CODE(temp->exp) == INTEGER_CST || TREE_CODE(temp->exp) == VAR_DECL)
 				continue;
 			else {
@@ -321,6 +323,24 @@ static int find_ve_class(enum tree_code code, tree rhs1, tree rhs2, struct node 
 	return -1;
 }
 
+static int remove_ve_from_pool(tree t, struct node* pool[])
+{
+	int i, flag = 0;
+	for (i=0; i<POOLMAX; i++) {
+		struct node *temp = pool[i];
+		for (; temp->next; temp=temp->next) {
+			if (TREE_CODE(temp->next->exp) == INTEGER_CST || TREE_CODE(temp->next->exp) == VAR_DECL)
+				continue;
+			else if (TREE_OPERAND(temp->next->exp, 0) == t || TREE_OPERAND(temp->next->exp, 1) == t) {
+				temp->next = temp->next->next;
+				flag = 1;
+				print_pool("Just deleted a ve", pool);
+			}
+		}
+	}
+	return flag;
+}
+
 static void remove_from_class(tree t, int class, struct node *pool[])
 {
 	struct node *temp = pool[class];
@@ -330,20 +350,22 @@ static void remove_from_class(tree t, int class, struct node *pool[])
 	for (;temp->next; temp=temp->next)
 		if (temp->next->exp == t) {
 			temp->next = temp->next->next;
-			print_pool("Just deleted", pool);
+			print_pool("Just deleted a vn", pool);
 			return;
 		}
 }
 
 static void delete_singletons(struct node *pool[])
 {
-	// TODO logic needs work, have to delete ve's containing singleton too
-	int i;
+	int i, flag = 0;
 	for (i=0; i<POOLMAX; i++) {
 		if (pool[i]->exp && pool[i]->next == NULL) {
+			flag = remove_ve_from_pool(pool[i]->exp, pool);
 			remove_from_class(pool[i]->exp, i, pool);
 		}
 	}
+	if (flag)
+		delete_singletons(pool);
 }
 
 static tree value_exp_rhs(gimple stmt, struct node *pool[])
