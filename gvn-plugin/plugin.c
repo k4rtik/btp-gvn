@@ -14,7 +14,7 @@
 #include "tree-pass.h"
 #include "toplev.h"
 
-#define POOLMAX 5
+#define POOLMAX 9
 
 /*-----------------------------------------------------------------------------
  *  Each plugin MUST define this global int to assert compatibility with GPL; 
@@ -52,10 +52,11 @@ static void set_out_pool(gimple stmt);
 static void transfer(gimple stmt);
 static int find_class(tree t, struct node *pool[]);
 static void remove_from_class(tree t, int class, struct node *pool[]);
-static void delete_singletons(struct node **pool);
-static tree value_exp_rhs(gimple stmt);
+static void delete_singletons(struct node *pool[]);
+static tree value_exp_rhs(gimple stmt, struct node *pool[]);
 static void add_to_class(tree t, int class, struct node *pool[]);
 static void create_new_class(struct node *pool[], tree t, tree e_ve);
+static void create_new_class1(struct node *pool[], tree t);
 static void print_poolset(struct exp_poolset *poolset);
 static void print_pool(const char name[], struct node *pool[]);
 
@@ -129,6 +130,7 @@ static unsigned int do_gvn (void)
 	basic_block bb;
 	map = pointer_map_create();
 	T = create_tmp_var(integer_type_node, "t");
+	int count = 0;
 
 	if (!dump_file)
 		return;
@@ -151,7 +153,7 @@ static unsigned int do_gvn (void)
 				print_poolset((struct exp_poolset *) *pointer_map_contains(map, gsi_stmt(gsi)));
 			}
 		}
-	} while ( change_in_exp_pools() );
+	} while ( change_in_exp_pools() && ++count<20);
 
 }
 
@@ -260,11 +262,12 @@ static void transfer(gimple stmt)
 			fprintf(dump_file, "%s found!\n", get_name(x));
 			remove_from_class(x, lclass, temp_pool);
 			delete_singletons(temp_pool);
+			fprintf(dump_file, "back from singleton-deletion\n");
 		}
 		else
 			fprintf(dump_file, "%s not found!\n", get_name(x));
 
-		tree e_ve = value_exp_rhs(stmt);
+		tree e_ve = value_exp_rhs(stmt, temp_pool);
 		if (TREE_CODE(e_ve) == INTEGER_CST)
 			fprintf(dump_file, "e_ve = %lu\n", ((TREE_INT_CST_HIGH (e_ve) << HOST_BITS_PER_WIDE_INT) + TREE_INT_CST_LOW (e_ve)));
 		else
@@ -323,13 +326,16 @@ static void delete_singletons(struct node *pool[])
 	}
 }
 
-static tree value_exp_rhs(gimple stmt)
+static tree value_exp_rhs(gimple stmt, struct node *pool[])
 {
 	if (!is_gimple_assign(stmt))
 		return NULL;
 	tree rhs1 = gimple_assign_rhs1(stmt);
 	tree rhs2 = gimple_assign_rhs2(stmt);
 
+	int lclass = -1, rclass = -1;
+
+	tree lvn, rvn;
 	enum tree_code code = gimple_assign_rhs_code(stmt);
 
 	switch (get_gimple_rhs_class(code)) {
@@ -337,12 +343,18 @@ static tree value_exp_rhs(gimple stmt)
 			//fprintf(dump_file, "Single RHS: %d\n", ((TREE_INT_CST_HIGH (rhs1) << HOST_BITS_PER_WIDE_INT) + TREE_INT_CST_LOW (rhs1)));
 			return rhs1;
 		case GIMPLE_BINARY_RHS:
-			// TODO
-			return NULL;
+			if ((lclass = find_class(rhs1, pool)) == -1)
+				create_new_class1(pool, rhs1);
+			lvn = pool[lclass]->exp;
+			if ((rclass = find_class(rhs2, pool)) == -1)
+				create_new_class1(pool, rhs2);
+			rvn = pool[rclass]->exp;
+			// build (code, lvn, rvn)
+			return build2(code, void_type_node, lvn, rvn);
 	}
 }
 
-static void add_to_class(tree t, int class, struct node **pool)
+static void add_to_class(tree t, int class, struct node *pool[])
 {
 	struct node *temp = pool[class];
 	struct node *new = ggc_alloc_cleared_atomic(sizeof(struct node));
@@ -361,7 +373,7 @@ static void create_new_class(struct node *pool[], tree x, tree e)
 	struct node *xnode, *enode;
 	xnode = ggc_alloc_cleared_atomic(sizeof(struct node));
 	enode = ggc_alloc_cleared_atomic(sizeof(struct node));
-	tree vn = create_tmp_var(integer_type_node, "vn");
+	tree vn = create_tmp_var(integer_type_node, "v");
 
 	enode->exp = e;
 	enode->next = NULL;
@@ -369,6 +381,23 @@ static void create_new_class(struct node *pool[], tree x, tree e)
 	xnode->next = enode;
 	pool[i]->exp = vn;
 	pool[i]->next = xnode;
+}
+
+static void create_new_class1(struct node *pool[], tree x)
+{
+	int i;
+	print_pool("temppool-before", pool);
+	for (i=0;pool[i]->exp!=NULL; i++)
+		;
+	struct node *xnode;
+	xnode = ggc_alloc_cleared_atomic(sizeof(struct node));
+	tree vn = create_tmp_var(integer_type_node, "v");
+
+	xnode->exp = x;
+	xnode->next = NULL;
+	pool[i]->exp = vn;
+	pool[i]->next = xnode;
+	print_pool("temppool-after", pool);
 }
 
 static void print_poolset(struct exp_poolset *poolset)
@@ -386,10 +415,22 @@ static void print_pool(const char name[], struct node *pool[])
 	for (i=0; i<POOLMAX; i++) {
 		fprintf(dump_file, "\nClass %d ", i);
 		for (temp = pool[i]; temp && temp->exp; temp=temp->next) {
-			if (TREE_CODE(temp->exp) == INTEGER_CST)
-				fprintf(dump_file, "-> %lu ", ((TREE_INT_CST_HIGH (temp->exp) << HOST_BITS_PER_WIDE_INT) + TREE_INT_CST_LOW (temp->exp)));
-			else
-				fprintf(dump_file, "-> %s ", get_name(temp->exp));
+			switch (TREE_CODE(temp->exp)) {
+				case INTEGER_CST:
+					fprintf(dump_file, "-> %lu ", ((TREE_INT_CST_HIGH (temp->exp) << HOST_BITS_PER_WIDE_INT) + TREE_INT_CST_LOW (temp->exp)));
+					break;
+				case VAR_DECL:
+					fprintf(dump_file, "-> %s ", get_name(temp->exp));
+					break;
+				case PLUS_EXPR:
+					fprintf(dump_file, "-> %s + %s ", get_name(TREE_OPERAND(temp->exp, 0)), get_name(TREE_OPERAND(temp->exp, 1)));
+					break;
+				case MINUS_EXPR:
+					fprintf(dump_file, "-> %s - %s ", get_name(TREE_OPERAND(temp->exp, 0)), get_name(TREE_OPERAND(temp->exp, 1)));
+					break;
+				default:
+					fprintf(dump_file, "-> UNKNOWN_TYPE ");
+			}
 		}
 	}
 	fprintf(dump_file, "\n");
