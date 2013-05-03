@@ -257,6 +257,7 @@ static void transfer(gimple stmt)
 	if (is_gimple_assign(stmt)) { // x = e
 		tree x = gimple_assign_lhs(stmt);
 		if ( (lclass = find_class(x, temp_pool)) > -1) {
+			fprintf(dump_file, "%s found!\n", get_name(x));
 			remove_from_class(x, lclass, temp_pool);
 			delete_singletons(temp_pool);
 		}
@@ -300,16 +301,13 @@ static int find_class(tree t, struct node *pool[])
 static void remove_from_class(tree t, int class, struct node *pool[])
 {
 	struct node *temp = pool[class];
-	struct node *tofree;
 	for (;temp->next; temp=temp->next)
 		if (temp->next->exp == t) {
 			tofree = temp->next;
 			temp->next = temp->next->next;
-			free(tofree);
+			print_pool("Just deleted", pool);
 			return;
 		}
-	if (temp->exp == t)
-		temp->exp = NULL; // TODO verify logic
 }
 
 static void delete_singletons(struct node *pool[])
