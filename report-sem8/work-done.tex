@@ -46,7 +46,9 @@ GIMPLE\cite{gimple} is a three-address representation derived from GENERIC by br
 Register transfer language (RTL)\cite{rtl} is an intermediate representation (IR) that is very close to assembly language (low-level). In GCC, RTL is generated from the GIMPLE representation, transformed by various passes in the GCC `middle-end', and then converted to assembly language.
 
 \subsection{GCC Plugin Mechanism}
-GCC supports plugin mechanism for implementing optimization passes (manipulating GIMPLE form). The pass manager takes care of choosing and running all the available passes and their order on the program AST. A plugin could be either a static plugin or a dynamic one. How a dynamic plugin fits in with other passes is shown in figure \ref{fig:dynamic-plugin}.
+GCC supports plugin mechanism for implementing optimization passes (manipulating GIMPLE form). The pass manager takes care of choosing and running all the available passes and their order on the program AST. A plugin could be either a static plugin or a dynamic one.
+
+We choose to implement our pass as a dynamic plugin since it's easier to integrate it with GCC without recompiling. Figure \ref{fig:dynamic-plugin} shows how a dynamic plugin can be inserted at a desired point in the list of passes.
 
 \begin{figure}[htb]
 \centering
