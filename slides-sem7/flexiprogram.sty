@@ -1,0 +1,40 @@
+%%%%    environment program for typesetting programs
+%%%%    Developed by Uday Khedker (uday@cse.iitb.ac.in)
+%%%%    Thu Sep  4 18:45:47 IST 2003
+%%%%    Newline is specified by \NL{Indentation} 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\protect{\newlength{\BRACEL}}
+\protect{\newlength{\BRACE}}
+\protect{\newlength{\TAL}}
+\settowidth{\TAL}{TA}
+\settowidth{\BRACE}{\{}
+\settowidth{\BRACEL}{TA}
+\addtolength{\BRACEL}{-1.\BRACE}
+\newcommand{\OB}{\{\hspace*{\BRACEL}}
+\newcommand{\CB}{\}}
+\protect{\newcounter{programline}}
+\newcommand{\PROCEDURE}{\mbox{\bf procedure\ }}
+\newcommand{\FUNCTION}{\mbox{\bf function\ }}
+\newcommand{\AND}{\mbox{\bf and\ }}
+\newcommand{\FOR}{\mbox{\bf for\ }}
+\newcommand{\RETURN}{\mbox{\bf return\ }}
+\newcommand{\IF}{\mbox{\bf if\ }}
+\newcommand{\THEN}{\mbox{\bf then\ }}
+\newcommand{\ELSE}{\mbox{\bf else\ }}
+\newcommand{\WHILE}{\mbox{\bf while\ }}
+\newcommand{\REPEAT}{\mbox{\bf repeat\ }}
+\newcommand{\UNTIL}{\mbox{\bf until\ }}
+\newcommand{\DO}{\mbox{\bf do\ }}
+\newcommand{\NL}[1]{\\ \refstepcounter{programline}\theprogramline
+& \hspace*{#1\TAL}
+}
+\newcommand{\FL}{\theprogramline &}
+\newcommand{\COMMENT}[1]{\hfill /$\star$ \protect{#1} \ $\star$/}
+\newcommand{\FLCOMMENT}[1]{/$\star$ \protect{#1} \ $\star$/ \hfill}
+\newenvironment{program}[1]{\begin{center}\protect\setcounter{programline}{#1}
+                           \begin{tabular}{|r@{. \ }l|} 
+                        \hline 
+                        }{\rule[-8pt]{0pt}{12pt}\\ \hline \end{tabular}
+                                \end{center}
+                        }
+

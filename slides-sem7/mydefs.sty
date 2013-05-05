@@ -1,0 +1,567 @@
+%\baselineskip 16pt
+%\textwidth 6.2in
+%\textheight  9.0in
+%\oddsidemargin .2in
+%\evensidemargin .25in
+%\topmargin -.25in
+%\footheight  1.0in
+%\footskip  0.55in
+%\topmargin -.6in
+%\oddsidemargin .6in
+%\renewcommand{\thefigure}{\thesection.\arabic{figure}}
+%\renewcommand{\thetable}{\thesection.\arabic{table}}
+%\renewcommand{\theequation}{\thesection.\arabic{equation}}
+\setcounter{secnumdepth}{4}
+\setcounter{tocdepth}{3}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%                New Environments/Commands        %%%%%%%%%%%%%%%
+
+\newtheorem{lemm}{Lemma}
+\newtheorem{thrm}{Theorem}
+\newtheorem{crlry}{Corollary}
+\newtheorem{obsrvtn}{Observation}
+\newtheorem{defntion}{Definition}
+\newtheorem{exmpl}{Example}
+\newcommand{\CHAPTER}[1]{\chapter{#1} \setcounter{lemm}{0}
+\def\@oddfoot{\rm\thepage \hfil \sl\rightmark\hbox{}}
+                                        \setcounter{thrm}{0}
+                                        \setcounter{obsrvtn}{0}
+                                        \setcounter{defntion}{0}
+                                        \setcounter{exmpl}{0}
+                                        \setcounter{crlry}{0}}
+%\renewcommand{\theobsrvtn}{\thechapter.\arabic{obsrvtn}}
+%\renewcommand{\thelemm}{\thechapter.\arabic{lemm}}
+%\renewcommand{\thethrm}{\thechapter.\arabic{thrm}}
+%\renewcommand{\thecrlry}{\thechapter.\arabic{crlry}}
+%\renewcommand{\thedefntion}{\thechapter.\arabic{defntion}}
+%\renewcommand{\theexmpl}{\thechapter.\arabic{exmpl}}
+\newcommand{\SUBSUBSECTION}[1]{         \vspace*{.1in} 
+                                        \noindent {\bf #1} 
+                                        \vspace*{.1in} 
+                                        \newline
+                                        \noindent
+                                }
+\newcommand{\FIGBGN}{\begin{figure}[t]}
+\newcommand{\FIGEND}[2]{\protect{\caption{#1}\label{#2}}
+                         \end{figure}
+                        }
+\newcommand{\TABBGN}{\begin{table}[t]}
+\newcommand{\TABEND}[2]{\protect{\caption{#1}\label{#2}}
+                         \end{table}
+                        }
+\protect{\newlength{\FTABL}}
+\protect{\newlength{\TABL}}
+\protect{\newlength{\TAL}} %%%%%%%%%For the figure of dataflow framework
+\protect{\newlength{\BRACE}}
+\protect{\newlength{\PAREN}}
+\protect{\newlength{\BRACEL}}
+\protect{\newlength{\BULLET}}
+\protect{\newlength{\RHD}}
+\settowidth{\FTABL}{TA}
+\settowidth{\TABL}{TAB}
+\settowidth{\TAL}{TA}
+\settowidth{\BRACE}{\{}
+\settowidth{\BRACEL}{TA}
+\newcommand{\BTAB}{\hspace*{BULLETL}}
+{\small \settowidth{\BULLET}{$\bullet$}}
+{\small \settowidth{\RHD}{$\triangleright$}}
+\newcommand{\FTAB}{\hspace*{\FTABL}}
+\newcommand{\TAB}{\hspace*{\TAL}}
+\addtolength{\BRACEL}{-1.\BRACE}
+\newcommand{\OB}{\{\hspace*{\BRACEL}}
+\newcommand{\CB}{\}}
+\protect{\newcounter{programline}}
+\newcommand{\PROCEDURE}{\mbox{\bf procedure\ }}
+\newcommand{\FUNCTION}{\mbox{\bf function\ }}
+\newcommand{\AND}{\mbox{\bf and\ }}
+\newcommand{\FOR}{\mbox{\bf for\ }}
+\newcommand{\RETURN}{\mbox{\bf return\ }}
+\newcommand{\IF}{\mbox{\bf if\ }}
+\newcommand{\THEN}{\mbox{\bf then\ }}
+\newcommand{\ELSE}{\mbox{\bf else\ }}
+\newcommand{\WHILE}{\mbox{\bf while\ }}
+\newcommand{\REPEAT}{\mbox{\bf repeat\ }}
+\newcommand{\UNTIL}{\mbox{\bf until\ }}
+\newcommand{\DO}{\mbox{\bf do\ }}
+\newcommand{\PROGRAMBGN}[1]{
+                        \begin{center}\protect\setcounter{programline}{#1}
+                           \begin{tabular}{|r@{. \ }l|} 
+                        \hline 
+                        }
+\newcommand{\NL}[1]{\\ \refstepcounter{programline}\theprogramline
+& \hspace*{#1\TAL}
+}
+\newcommand{\FL}{\theprogramline &}
+\newcommand{\COMMENT}[1]{\hfill /$\star$ \protect{#1} \ $\star$/}
+\newcommand{\FLCOMMENT}[1]{/$\star$ \protect{#1} \ $\star$/ \hfill}
+\newcommand{\PROGRAMEND}{\rule[-8pt]{0pt}{12pt}\\ \hline \end{tabular}
+                                \end{center}
+                        }
+\newcommand{\eb}{{\renewcommand{\arraystretch}{.5} \hspace*{-6pt}
+		\begin{tabular}[b]{@{}|@{}p{5pt}@{}|}\hline %\rule{4pt}{7pt} 
+				\\ \hline
+			\end{tabular}}}
+\newenvironment{LEMMA}[1]{\lemm \label{#1} {\em :}}{}
+\newenvironment{THEOREM}[1]{\thrm \label{#1}{\em :}}{}
+%\newenvironment{PROOF}{\newline{\bf Proof :}}{\rule{1ex}{.8ex}}
+\newenvironment{PROOF}{{\bf Proof :}}{\rule{1ex}{.8ex}}
+%\newenvironment{PROOF}{\newline{\bf Proof :}}{}
+%\newenvironment{COROLLARY}{\crlry {\em :}}{$\box$}
+\newenvironment{COROLLARY}[1]{\crlry \label{#1}{\em :}}{}
+%\newenvironment{EXAMPLE}[1]{\exmpl {\em :}  \label{#1}\rm }{$\box$}
+\newenvironment{EXAMPLE}[1]{\exmpl {\em :}  \label{#1}\rm }{}
+\newenvironment{OBSERVATION}{\obsrvtn \em :}{}
+%\newenvironment{OBSERVATION}{\obsrvtn :}{}
+\newenvironment{DEF}[1]{
+                         \defntion {\em :} $\,${\bf #1.}
+                        %\newline}{}
+                        }{}
+\newcounter{alphctr}
+\newcounter{romanctr}
+\newenvironment{ALPHALIST}{\begin{list}{(\alph{alphctr})
+                                               }{\usecounter{alphctr} 
+                                              %    \setlength{\leftmargin}{0.75in}
+                                                  \setlength{\leftmargin}{0.3in}
+					%\setlength{\itemindent}{0in}
+					\setlength{\labelwidth}{0.35in}
+					% \setlength{\labelsep}{.1in}
+                                           }
+                             }{\end{list}}
+\newenvironment{ROMANLIST}{\begin{list}{(\roman{romanctr})
+                                       }{\usecounter{romanctr}
+                                          \setlength{\leftmargin}{0.75in}
+                                        }
+                          }{\end{list}}
+\newenvironment{SIMPLELIST}[2]{\begin{list}{}{\setlength{\leftmargin}{#1}
+                                                \setlength{\labelwidth}{#2}
+                                                \setlength{\itemsep}{0em}}
+                              }{\end{list}}
+\newcommand{\bigsqcap}{ \begin{picture}(15,10)
+                        \thicklines
+                        \put(3,10){\line(1,0){9}}
+                        \put(3,-1){\line(0,1){11}}
+                        \put(12,-1){\line(0,1){11}}
+                        \end{picture}
+                      }
+\newcommand{\smallsqcap}{ \begin{picture}(10,7)
+                        \thicklines
+                        \put(2,7){\line(1,0){6}}
+                        \put(2,-1){\line(0,1){8}}
+                        \put(8,-1){\line(0,1){8}}
+                        \end{picture}
+                      }
+\newcommand{\NEWMEET}[2]{\mbox{\raisebox{-1.6ex}
+                                {$\stackrel{#2}
+                                {\stackrel{\bigsqcap}
+                                        {\scriptstyle #1}}$}}}
+\newcommand{\MEET}[1]{\mbox{\raisebox{-1.9ex}
+                                {$\stackrel{ }
+                                {\stackrel{\bigsqcap}
+                                        {\scriptstyle #1}}$}}}
+\newcommand{\BIGMEET}[1]{\mbox{\raisebox{-1.9ex}
+                                {$\stackrel{ }
+                                {\stackrel{\scalebox{2}{\bigsqcap}}
+                                        {\scriptstyle #1}}$}}}
+\newcommand{\Meet}[1]{\mbox{\raisebox{-1.6ex}
+                                {$\stackrel{ }
+                                {\stackrel{\smallsqcap}
+                                        {\scriptstyle #1}}$}}}
+\newcommand{\MEETOP}{\mbox{$\bigsqcap$}}
+\newcommand{\Meetop}{\mbox{$\smallsqcap$}}
+\newcommand{\MEETop}{\mbox{$\sqcap$}}
+\newcommand{\TABFIGBGN}{\begin{figure}[t]
+                        \begin{minipage}{\textwidth}
+                             \renewcommand{\arraystretch}{.9}\small
+                           \begin{tabular}{@{}l@{}} 
+                        }
+\newcommand{\TABFIGEND}[2]{\end{tabular}
+                        \end{minipage}
+                        \protect{\caption{#1}\label{#2}}
+                        \end{figure}
+                        }
+ \newcommand{\DOTLINE}[1]{\\ \hspace*{#1\TAL} \mbox{\ \ $\bullet\!\!\!\!\!\!$} 
+                                        \hspace*{\TAL}}
+\newcommand{\TRILINE}[1]{\vspace*{.06in} \\ \hspace*{#1\TAL} 
+                         \mbox{\  $\triangleright\!\!\!\!\!$} \hspace*{\TAL}}
+\newcommand{\EMPLINE}[1]{\\ \hspace*{#1\TAL} \hspace*{\TAL}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%              Entities Used in the Paper              %%%%%%%%%%%%%%%
+
+\newcommand{\PROP}[1]{\mbox{$X(#1)$}}
+\newcommand{\PROPL}[1]{\mbox{PROP$^{l}_{#1}$}}
+\newcommand{\PPIN}[1]{\mbox{PPIN$_{#1}$}}
+\newcommand{\PPINL}[1]{\mbox{PPIN$^{l}_{#1}$}}
+\newcommand{\PPOUT}[1]{\mbox{PPOUT$_{#1}$}}
+\newcommand{\PPOUTL}[1]{\mbox{PPOUT$^{l}_{#1}$}}
+\newcommand{\TRANSP}[1]{\mbox{TRANSP$_{#1}$}}
+\newcommand{\TRANSPL}[1]{\mbox{TRANSP$^{l}_{#1}$}}
+\newcommand{\COMP}[1]{\mbox{COMP$_{#1}$}}
+\newcommand{\COMPL}[1]{\mbox{COMP$^{l}_{#1}$}}
+\newcommand{\ANTLOC}[1]{\mbox{ANTLOC$_{#1}$}}
+\newcommand{\ANTLOCL}[1]{\mbox{ANTLOC$^{l}_{#1}$}}
+\newcommand{\AVOUT}[1]{\mbox{AVOUT$_{#1}$}}
+\newcommand{\AVOUTL}[1]{\mbox{AVOUT$^{l}_{#1}$}}
+\newcommand{\AVIN}[1]{\mbox{AVIN$_{#1}$}}
+\newcommand{\AVINL}[1]{\mbox{AVIN$^{l}_{#1}$}}
+\newcommand{\PAVIN}[1]{\mbox{PAVIN$_{#1}$}}
+\newcommand{\PAVINL}[1]{\mbox{PAVIN$^{l}_{#1}$}}
+\newcommand{\PAVOUT}[1]{\mbox{PAVOUT$_{#1}$}}
+\newcommand{\PAVOUTL}[1]{\mbox{PAVOUT$^{l}_{#1}$}}
+\newcommand{\ANTIN}[1]{\mbox{ANTIN$_{#1}$}}
+\newcommand{\ANTINL}[1]{\mbox{ANTIN$^{l}_{#1}$}}
+\newcommand{\ANTOUT}[1]{\mbox{ANTOUT$_{#1}$}}
+\newcommand{\ANTOUTL}[1]{\mbox{ANTOUT$^{l}_{#1}$}}
+\newcommand{\INSERT}[1]{\mbox{INSERT$_{#1}$}}
+\newcommand{\INSERTL}[1]{\mbox{INSERT$^{l}_{#1}$}}
+\newcommand{\REDUND}[1]{\mbox{REDUND$_{#1}$}}
+\newcommand{\REDUNDL}[1]{\mbox{REDUND$^{l}_{#1}$}}
+\newcommand{\HOISTIN}[1]{\mbox{HOIST\_IN$_{#1}$}}
+\newcommand{\HOISTOUT}[1]{\mbox{HOIST\_OUT$_{#1}$}}
+\newcommand{\HOISTINOUT}{\mbox{HOIST\_IN/HOIST\_OUT$\;$}}
+\newcommand{\PPINOUT}{\mbox{PPIN/PPOUT$\;$}}
+\newcommand{\NOSINK}[1]{\mbox{NOSINK$_{#1}$}}
+\newcommand{\POPOUTL}[1]{\mbox{POPOUT$^{l}_{#1}$}}
+\newcommand{\Transp}{\mbox{\footnotesize TRANSP}}
+\newcommand{\Comp}{\mbox{\footnotesize COMP}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\BOT}{\mbox{\mbox{BOT}}}
+\newcommand{\TOP}{\mbox{TOP}}
+\newcommand{\TR}[1]{\mbox{\em TR$_{#1}$}}
+\newcommand{\CA}[1]{\mbox{\em CA$_{#1}$}}
+\newcommand{\TRz}{\mbox{\em TR$_{0}$}}
+\newcommand{\SEED}[1]{\mbox{\em Seed$({#1})$}}
+\newcommand{\SEEDSTAR}[1]{\mbox{\em Seed$\star({#1})$}}
+\newcommand{\DEPENDS}[1]{\mbox{\em Depends$({#1})$}}
+\newcommand{\DEPENDSTAR}[1]{\mbox{\em Depends$\star({#1})$}}
+\newcommand{\SBVP}{\mbox{\em SBVP}}
+\newcommand{\MBVP}{\mbox{\em MBVP}}
+\newcommand{\f}[1]{\mbox{$f_{#1}$}}
+\newcommand{\g}[1]{\mbox{$g_{#1}$}}
+\newcommand{\ff}[1]{\mbox{$f^{f}_{#1}$}}
+\newcommand{\fb}[1]{\mbox{$f^{b}_{#1}$}}
+\newcommand{\gf}[1]{\mbox{$g^{f}_{#1}$}}
+\newcommand{\gb}[1]{\mbox{$g^{b}_{#1}$}}
+\newcommand{\INf}{\mbox{IN$^{f}_{i}$}}
+\newcommand{\INb}{\mbox{IN$^{b}_{i}$}}
+\newcommand{\OUTf}{\mbox{OUT$^{f}_{i}$}}
+\newcommand{\OUTb}{\mbox{OUT$^{b}_{i}$}}
+\newcommand{\OUT}[1]{\mbox{OUT$_{#1}$}}
+\newcommand{\IN}[1]{\mbox{IN$_{#1}$}}
+\newcommand{\outpp}[1]{\mbox{\em out$\,({#1})$}}
+\newcommand{\inpp}[1]{\mbox{\em in$({#1})$}}
+\newcommand{\CONSTEXIT}{\mbox{CONST\_OUT$_{n_{x}}$}}
+\newcommand{\CONSTENTRY}{\mbox{CONST\_IN$_{n_{0}}$}}
+\newcommand{\CONSTOUT}[1]{\mbox{CONST\_OUT$_{#1}$}}
+\newcommand{\CONSTIN}[1]{\mbox{CONST\_IN$_{#1}$}}
+\newcommand{\CONSTA}[1]{\mbox{CONST\_A$_{#1}$}}
+\newcommand{\CONSTB}[1]{\mbox{CONST\_B$_{#1}$}}
+\newcommand{\FLOW}[1]{\mbox{FLOW$_{#1}$}}
+\newcommand{\Flow}[1]{\mbox{{\em flow}$_{#1}$}}
+\newcommand{\Pin}{\mbox{${\cal P}_{r}^{\scriptstyle in}$ }}
+\newcommand{\Pout}{\mbox{${\cal P}_{r}^{\scriptstyle out}$ }}
+\newcommand{\FLOWin}{\mbox{FLOW$_{{\cal P}_{r}^{\scriptstyle in}}$ }}
+\newcommand{\FLOWout}{\mbox{FLOW$_{{\cal P}_{r}^{\scriptstyle out}}$ }}
+\newcommand{\POP}{\mbox{\em op\_prop$^{j}_{k}$}}
+\newcommand{\WOP}{\mbox{\em op\_word$^{j}_{i}$}}
+\newcommand{\TOT}{\mbox{\em t\_op$_{j}$}}
+\newcommand{\TOW}{\mbox{\em t\_work\/}}
+\newcommand{\MAXPOP}{\mbox{\em max\_op\_prop\/}}
+\newcommand{\MAXWOP}{\mbox{\em max\_op\_word\/}}
+\newcommand{\TA}[1]{\mbox{AS$_{#1}$}}
+\newcommand{\din}{\mbox{\em d\_in$_{i}$}}
+\newcommand{\dout}{\mbox{\em d\_out$_{i}$}}
+\newcommand{\nos}{\mbox{\em no\_w}}
+\newcommand{\QR}{\mbox{${\cal Q}_{r}$}}
+\newcommand{\PR}{\mbox{${\cal P}_{r}$}}
+\newcommand{\ENTF}{\mbox{\em Boundaryinfo}}
+\newcommand{\INTF}{\mbox{\em Initinfo}}
+\newcommand{\Inf}{\mbox{\em Ininfo}}
+\newcommand{\Outf}{\mbox{\em Outinfo}}
+\newcommand{\ENTFin}{\mbox{\em External.Ininfo}}
+\newcommand{\ENTFout}{\mbox{\em External.Outinfo}}
+%\newcommand{\INTFin}{\mbox{\em Initinfo$\uparrow$InInfo}}
+%\newcommand{\INTFout}{\mbox{\em Initinfo$\uparrow$OutInfo}}
+\newcommand{\ALLF}{\mbox{$\overline{\mbox{F}}$}}
+\newcommand{\ALLT}{\mbox{$\overline{\mbox{T}}$}}
+\newcommand{\ENTRY}{\mbox{{\em entry}$\,(G)$}}
+\newcommand{\EXIT}{\mbox{{\em exit}$\,(G)$}}
+%**************************************************************************
+ \newcommand{\ROUT}[1]{\mbox{REACH\_OUT$_{#1}$}}
+ \newcommand{\RIN}[1]{\mbox{REACH\_IN$_{#1}$}}
+ \newcommand{\LIN}[1]{\mbox{LIVE\_IN$_{#1}$}}
+ \newcommand{\LOUT}[1]{\mbox{LIVE\_OUT$_{#1}$}}
+ \newcommand{\LGEN}[1]{\mbox{LIVE\_GEN$_{#1}$}}
+ \newcommand{\RGEN}[1]{\mbox{REACH\_GEN$_{#1}$}}
+ \newcommand{\EGEN}[1]{\mbox{AE\_GEN$_{#1}$}}
+ \newcommand{\BGEN}[1]{\mbox{VBE\_GEN$_{#1}$}}
+ \newcommand{\LKILL}[1]{\mbox{LIVE\_KILL$_{#1}$}}
+ \newcommand{\RKILL}[1]{\mbox{REACH\_KILL$_{#1}$}}
+ \newcommand{\EKILL}[1]{\mbox{AE\_KILL$_{#1}$}}
+ \newcommand{\BKILL}[1]{\mbox{VBE\_KILL$_{#1}$}}
+ \newcommand{\NOCOMIN}[1]{\mbox{NOCOMIN$_{#1}$}}
+ \newcommand{\NOCOMOUT}[1]{\mbox{NOCOMOUT$_{#1}$}}
+ \newcommand{\SPPIN}[1]{\mbox{SPPIN$_{#1}$}}
+ \newcommand{\SPPOUT}[1]{\mbox{SPPOUT$_{#1}$}}
+ \newcommand{\DCOMP}[1]{\mbox{DCOMP$_{#1}$}}
+ \newcommand{\DTRANSP}[1]{\mbox{DTRANSP$_{#1}$}}
+ \newcommand{\DANTIN}[1]{\mbox{DANTIN$_{#1}$}}
+ \newcommand{\DPANTOUT}[1]{\mbox{DPANTOUT$_{#1}$}}
+ \newcommand{\CONST}[1]{\mbox{CONST$_{#1}$}}
+ \newcommand{\CONSTa}[1]{\mbox{CONSTA$_{#1}$}}
+ \newcommand{\CONSTb}[1]{\mbox{CONSTB$_{#1}$}}
+ \newcommand{\CONSTc}[1]{\mbox{CONSTC$_{#1}$}}
+ \newcommand{\CONSTd}[1]{\mbox{CONSTD$_{#1}$}}
+ \newcommand{\CONSTe}[1]{\mbox{CONSTE$_{#1}$}}
+%%%%%%%%%%%%%%%%%%%%          end of global declarations        %%%%%%%%%%%%%%%%%%%
+\newcommand{\DELpf}{\mbox{$\delta_{f}$}}
+\newcommand{\DELmf}{\mbox{$\delta^{-}_{f}$}}
+\newcommand{\DELpb}{\mbox{$\delta_{b}$}}
+\newcommand{\DELmb}{\mbox{$\delta^{-}_{b}$}}
+\newcommand{\DELpg}{\mbox{$\delta_{G}$}}
+\newcommand{\DELmg}{\mbox{$\delta^{-}_{G}$}}
+\newcommand{\Fe}{\mbox{$T_{e}^f$}}
+\newcommand{\Fb}{\mbox{$T_{b}^f$}}
+\newcommand{\Ff}{\mbox{$T_{f}^f$}}
+\newcommand{\Be}{\mbox{$T_{e}^b$}}
+\newcommand{\Bb}{\mbox{$T_{b}^b$}}
+\newcommand{\Bf}{\mbox{$T_{f}^b$}}
+\newcommand{\Fg}{\mbox{$T_{G}^f$}}
+\newcommand{\Bg}{\mbox{$T_{G}^b$}}
+\newcommand{\Fn}{\mbox{$F_{n}$}}
+\newcommand{\Bn}{\mbox{$B_{n}$}}
+\newcommand{\gI}{\mbox{$g_{1}$}}
+\newcommand{\gII}{\mbox{$g_{2}$}}
+\newcommand{\gIII}{\mbox{$g_{3}$}}
+\newcommand{\gIV}{\mbox{$g_{4}$}}
+\newcommand{\gIf}{\mbox{$g^{f}_{1}$}}
+\newcommand{\gIb}{\mbox{$g^{b}_{1}$}}
+\newcommand{\gIIIf}{\mbox{$g^{f}_{3}$}}
+\newcommand{\gIIIb}{\mbox{$g^{b}_{3}$}}
+%\newcommand{\ifp}{\mbox{\em ifp\/}}
+\newcommand{\ipp}{\mbox{\em ipp\/}}
+\newcommand{\BF}[1]{\mbox{${\cal B}_{h}^{#1}$}}
+\newcommand{\STRT}{\mbox{\em start$\:$}}
+\newcommand{\STP}{\mbox{\em stop}}
+\newcommand{\PPGT}{\mbox{\em propagate}}
+\newcommand{\NGT}{\mbox{\em negate}}
+\newcommand{\In}{\mbox{\footnotesize IN}}
+\newcommand{\Out}{\mbox{\footnotesize OUT}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%                DEFINITIONS FOR INCREMENTAL DATA FLOW ANALYSIS 
+%\newcommand{\PCT}{\mbox{$\cal PCT$}}
+%\newcommand{\PCB}{\mbox{$\cal PCB$}}
+\newcommand{\OLD}[1]{\mbox{{\em old}$\:(#1)$}}
+\newcommand{\VT}{\mbox{$\cal VT$}}
+\newcommand{\VB}{\mbox{$\cal VB$}}
+\newcommand{\TB}{\mbox{${\cal T}2{\cal B}$}}
+\newcommand{\BT}{\mbox{${\cal B}2{\cal T}$}}
+\newcommand{\TRM}{\mbox{${\cal TR}^{-}$}}
+\newcommand{\TRP}{\mbox{${\cal TR}^{+}$}}
+\newcommand{\GCT}[1]{\mbox{${\cal GCT}({#1})$}}
+\newcommand{\GCB}[1]{\mbox{${\cal GCB}({#1})$}}
+\newcommand{\NCT}[1]{\mbox{${\cal NCT}({#1})$}}
+\newcommand{\D}[1]{\mbox{${\cal D}({#1})$}}
+\newcommand{\DSTAR}[1]{\mbox{${\cal D}\!\star\!({#1})$}}
+\newcommand{\AR}[1]{\mbox{${\cal AR}_{#1}$}}
+\newcommand{\BR}[1]{\mbox{${\cal BR}_{#1}$}}
+\newcommand{\RAISE}{\mbox{\em raise}}
+\newcommand{\LOWER}{\mbox{\em lower}}
+%\renewcommand{\BF}{\mbox{${\cal B}_{h}$}}
+\newcommand{\BFM}{\mbox{${\cal B}_{h}^{m}$}}
+\newcommand{\DBFM}{\mbox{$\partial{\cal B}_{h}^{m}$}}
+\newcommand{\CMB}{\mbox{$\Delta$}}
+\newcommand{\SI}{\mbox{$S$}}
+\newcommand{\SIP}{\mbox{$S'$}}
+%\newcommand{\COMPUTED}[1]{\mbox{{\em computed}$\:(#1)$}}
+%\newcommand{\LC}{\mbox{$\cal LC$}}
+\newcommand{\GC}{\mbox{$\cal GC$}}
+\newcommand{\COMPUTES}{\mbox{$p \leftarrow \BFM (p')$}}
+%\newcommand{\PP}[1]{\mbox{\em program\_point$\,({#1})$}}
+%\renewcommand{\PP}[1]{\mbox{${\cal P}\!\!\bullet\!(#1)$}}
+\newcommand{\PP}[1]{\mbox{${\cal P}p(#1)$}}
+%\newcommand{\NGBR}[1]{\mbox{{\em neighbour}$\:(#1)$}}
+\newcommand{\NGBR}[1]{\mbox{${\cal N}(#1)$}}
+\newcommand{\ngbr}{\mbox{${\cal N}$}}
+\newcommand{\NGBRI}[1]{\mbox{${\cal N}^{-1}(#1)$}}
+\newcommand{\ngbri}[1]{\mbox{${\cal N}^{-1}$}}
+\newcommand{\arrow}{\mbox{$ - \!\!\!\triangleright $}}
+\newcommand{\st}{\mbox{ s.t. }}
+\newcommand{\pseta}[1]{\mbox{$\sigma_{\!\alpha}^{#1}$}}
+\newcommand{\psetb}[1]{\mbox{$\sigma_{\!\beta}^{#1}$}}
+\newcommand{\psetg}[1]{\mbox{$\sigma_{\!\gamma}^{#1}$}}
+
+\newenvironment{SLIST}{\begin{list}{}{\setlength{\leftmargin}{.5in}
+                                         \setlength{\labelsep}{0in}
+                                         \setlength{\itemindent}{0in}
+                                         \setlength{\labelwidth}{\leftmargin}
+                                         \addtolength{\labelwidth}{-1\labelsep}
+                                                   }
+                        }{\end{list}
+                         }
+
+\newenvironment{CLIST}{\begin{list}{}{\setlength{\leftmargin}{.85in}
+                                         \setlength{\labelsep}{.1in}
+                                         \setlength{\itemindent}{0in}
+                                         \setlength{\labelwidth}{\leftmargin}
+                                         \addtolength{\labelwidth}{-1\labelsep}
+                                                   }
+                        }{\end{list}
+                         }
+
+\newcommand{\FTEXT}{junk}
+\newenvironment{FLIST}[1]{\begin{list}{}{\setlength{\leftmargin}{.55in}
+                                         \setlength{\labelsep}{.1in}
+                                         \setlength{\itemindent}{0in}
+                                         \setlength{\itemsep}{0in}
+                                         \setlength{\labelwidth}{\leftmargin}
+                                         \addtolength{\labelwidth}{-1\labelsep}
+                                         \renewcommand{\FTEXT}{\mbox{$#1$}}
+                                                   }
+                        }{\end{list}
+                         }
+\newcommand{\FITEM}{\item \hspace*{-\leftmargin}}
+\newcommand{\VFITEM}{\item \hspace*{-\leftmargin}$\triangleright$ \ }
+\newcommand{\NITEM}{\item[{\FTEXT}]}
+\newcommand{\psetl}[1]{\mbox{$\sigma_\lambda^{#1}(\Psi\star)$}}
+\newcommand{\BITEM}[1]{\item[$\bullet\;{#1}\;:\;$]}
+\newcommand{\DITEM}[1]{\item[$\circ\;{#1}\;\;$]}
+
+\newenvironment{XLIST}[1]{\begin{list}{}{\setlength{\leftmargin}{.5in}
+                                         \setlength{\labelsep}{0in}
+                                         \setlength{\itemindent}{0in}
+                                         \setlength{\labelwidth}{\leftmargin}
+                                         \addtolength{\labelwidth}{-1\labelsep}
+                                         \renewcommand{\FTEXT}{\mbox{$#1$}}
+                                                   }
+                        }{\end{list}
+                         }
+
+%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\CORRES}[1]{\mbox{$\propto\!({#1})$}} 
+\newcommand{\p}{\mbox{$\cal P$}}
+\newcommand{\Pp}{\mbox{${\cal P}'$}}
+\newcommand{\A}{\mbox{$\cal A$}}
+\newcommand{\Ai}{\mbox{${\cal A}^I$}}
+\newcommand{\s}{\mbox{$\cal S$}}
+\newcommand{\Sp}{\mbox{${\cal S}'$}}
+\newcommand{\DP}{\mbox{$\Delta \cal P$}}
+\newcommand{\DS}{\mbox{$\Delta \cal S$}}
+
+%%%%%%%%%%%%%%%%% Required for incremental algorithm
+
+\newcommand{\POS}[1]{\mbox{{\em Pos\/}$(#1)$}}
+\newcommand{\BFI}{\mbox{${\cal B}_{h}^{i}$}}
+\newcommand{\gct}[1]{\mbox{${\cal GCT}_{\!\!#1}$}}
+\newcommand{\gcb}[1]{\mbox{${\cal GCB}_{\!\!#1}$}}
+\newcommand{\nct}[1]{\mbox{${\cal NCT}_{\!\!#1}$}}
+
+%%%%%%%%%%% Required for extensions of incremental data flow analysis.
+
+\newcommand{\TBS}{\mbox{${\cal T}2{\cal B}\star$}}
+\newcommand{\BTS}{\mbox{${\cal B}2{\cal T}\!\star$}}
+\newcommand{\Cf}{\mbox{${\cal H}^m$}}
+\newcommand{\ITB}[1]{\mbox{${\cal T}2{\cal B_{\cal I}}({#1})$}}
+\newcommand{\IBT}[1]{\mbox{${\cal B}2{\cal T_{\cal I}}({#1})$}}
+\newcommand{\ITBS}{\mbox{${\cal T}2{\cal B_{\cal I}}\star$}}
+\newcommand{\IBTS}{\mbox{${\cal B}2{\cal T_{\cal I}}\star$}}
+\newcommand{\ITRM}[1]{\mbox{${\cal TR_{\cal I}}^{-}({#1})$}}
+\newcommand{\ITRP}[1]{\mbox{${\cal TR_{\cal I}}^{+}({#1})$}}
+\newcommand{\IGCT}[1]{\mbox{${\cal GCT_{\cal I}}({#1})$}}
+\newcommand{\IGCB}[1]{\mbox{${\cal GCB_{\cal I}}({#1})$}}
+\newcommand{\INCT}[1]{\mbox{${\cal NCT_{\cal I}}({#1})$}}
+
+%%%%%%%%%%%%%%%%%%%% To create glossary %%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%% Run awk file mk_gloss on the generated .glo file %%%%%
+
+\newcommand{\AGE}[2]{\glossary{|#1|#2|}}
+%%%%%%%%%%% Add Glossary Entry %%%%%%%%
+
+%%%%%%%%%%%%%
+\newcommand{\myquote}[1]{\begin{center}
+                                                \renewcommand{\baselinestretch}{.9}\small 
+                                                \parbox{4.5in}{\em #1}
+                                                
+                                                \vspace*{.2in}\mbox{ }
+                                                \end{center}}
+                        
+%%%%%%%%%%%%%%% For inline programs (i.e not in separate figure)
+
+\newcommand{\IPNL}[1]{\\ \tt
+                        \hspace*{#1\PAREN}}
+\newcommand{\IPFL}{\tt} 
+\newcommand{\IPPROGRAMBGN}{
+                        \begin{center}
+                           \begin{tabular}{|l|} 
+                        \hline 
+                        }
+\newcommand{\IPCOMMENT}[1]{$/\star$ \ \tt \protect{#1} \ \hfill $\star$/}
+\newcommand{\IPFLCOMMENT}[1]{/$\star$ \tt \hspace*{12pt} \protect{#1} \ $\star$/ \hfill}
+\newcommand{\IPPROGRAMEND}{\rule[-8pt]{0in}{10pt}\\  \hline \end{tabular}
+                        \end{center}
+                        }
+\newcommand{\OP}{(}
+\newcommand{\CP}{)}
+\settowidth{\PAREN}{(}
+\newcommand{\ditem}{\item[$-\;\;\;$\hfill\mbox{ }]}
+\newenvironment{ITEMIZE}{\begin{list}{$\bullet$\hfill}{\setlength{\leftmargin}{.3in}
+					\setlength{\itemindent}{0in}
+					\setlength{\labelwidth}{0.20in}
+					 \setlength{\labelsep}{.3in}
+					 \addtolength{\labelsep}{-1\parindent}
+					 \addtolength{\labelsep}{-1.5\BULLET}
+			   			}
+		        }{\end{list}
+			 }
+%\newcounter{mycounter}
+%\newenvironment{ENUMERATE}{\begin{list}{(\arabic{mycounter})
+					   %\setcounter{mycounter}{1}
+				       %}{\usecounter{mycounter}
+				 	 %\setlength{\leftmargin}{.35in}
+					%\setlength{\itemindent}{0in}
+					%\setlength{\labelwidth}{0.35in}
+					 %\setlength{\labelsep}{0in}
+					 %%\refstepcounter{mycounter}
+				        %}
+			  %}{\end{list}}
+\newcounter{mycounter}
+\newenvironment{ENUMERATE}{\begin{list}{(\arabic{mycounter})
+        %\setcounter{mycounter}{1}
+           }{\usecounter{mycounter}
+       \setlength{\leftmargin}{.27in}
+   %   \setlength{\labelsep}{\leftmargin}
+      %\refstepcounter{mycounter}
+            }
+     }{\end{list}}
+\newenvironment{alphalist}{\begin{list}{(\alph{alphctr})
+                                               }{\usecounter{alphctr} 
+                                                  \setlength{\leftmargin}{0.3in}
+					\setlength{\itemindent}{0in}
+					%\setlength{\labelwidth}{0.35in}
+					 \setlength{\labelsep}{.1in}
+                                           }
+                             }{\end{list}}
+\newenvironment{romanlist}{\begin{list}{(\roman{romanctr})
+                                               }{\usecounter{romanctr} 
+                                                  \setlength{\leftmargin}{0.3in}
+					\setlength{\itemindent}{0in}
+					%\setlength{\labelwidth}{0.35in}
+					 \setlength{\labelsep}{.1in}
+                                           }
+                             }{\end{list}}
+\newcommand{\colda}{CoLDA}
+\newcommand{\ecolda}{ECoLDA}
+\newcommand{\gcolda}{GCoLDA}
+\font \helvbb = phvb at 14pt
+\font \helvbfourteen = phvb at 14pt
+\font \helvbtwelve = phvb at 12pt
+\font \helvbelleven = phvb at 11pt
+\font \helvb = phvb at 10pt
+\font \helv = phvr at 10pt
+\font \zd = pzdr at 14pt
+\font \helvHb = phvb at 14pt
+\font \helvLb = phvb at 12pt
+\font \zd = pzdr at 14pt
+%\newcommand{\mysmile}{\scalebox{0.6}{\scalebox{2.5}{$\bigcirc$}\raisebox{-.06in}{\hspace*{-.27in}\boldmath$\stackrel{\circ\;\;\;\circ}{\stackrel{\wedge}{\smile}}$}}}
+\newcommand{\mysmile}{\raisebox{-.1in}{\boldmath$\stackrel{\circ\;\;\;\circ}{\stackrel{\wedge}{\smile}}$}}
+\newcommand{\citem}{\item[$\circ$]}

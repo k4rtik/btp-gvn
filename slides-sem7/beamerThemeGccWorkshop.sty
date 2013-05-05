@@ -1,0 +1,135 @@
+\ProvidesPackageRCS $Header: /cvsroot/latex-beamer/latex-beamer/themes/theme/compatibility/beamerthemelined.sty,v 1.3 2004/10/07 20:53:10 tantau Exp $
+%
+% This program can be redistributed and/or modified under the terms
+% of the GNU Public License, version 2.
+
+\mode<presentation>
+
+\setbeamertemplate{headline}[text line]
+{%
+\vbox{%
+\vskip2pt%
+\tinyline{%\color{brown}%
+\hspace*{-.1in}%
+%%\scalebox{1.2}{\bfseries\insertshortdate}%
+%%\hfill%
+%%\scalebox{1.2}{\bfseries \insertshorttitle: \insertpart}\hfill%
+%%\scalebox{1.2}{\bfseries\insertframenumber/\inserttotalframenumber}%
+%\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lcr}
+\psset{unit=1mm}\begin{pspicture}(0,0)(127,2)
+%\psframe(0,0)(127,2)
+\putnode[l]{a}{origin}{0}{1}{\scalebox{1.2}{\bfseries\insertshortdate}}
+\putnode{a}{origin}{64}{1}{\scalebox{1.2}{\bfseries\insertshorttitle: \insertpart}}
+\putnode[r]{a}{origin}{127}{1}{\scalebox{1.2}{\bfseries\insertframenumber/\inserttotalframenumber}}
+\end{pspicture}%
+\hspace*{-.1in}}%
+\insertvrule{.3pt}{black}%
+  }%
+}
+
+\setbeamertemplate{part page}
+{
+\hfill
+\begin{beamercolorbox}[ht=1in,center]{beamer color}
+{\large
+Part \insertpartnumber
+}
+\vskip 10pt
+\psframebox[doubleline=true,framearc=.2,framesep=3mm,fillstyle=solid,fillcolor=lightgray,
+	linestyle=none]
+{%
+\black
+\insertpart
+}
+\end{beamercolorbox}
+\hfill
+\addtocounter{framenumber}{-1}
+}
+
+\setbeamertemplate{title page}
+{
+\hfill
+\begin{beamercolorbox}[wd=4in,center]{beamer color}
+{
+{\large\itshape\blue
+CSU498 Project
+}
+
+\vskip15pt
+\Large\red
+\inserttitle
+}
+
+\vskip25pt
+\black
+\insertauthor
+\vskip2pt
+{\footnotesize\black
+(B090566CS)
+}
+\vskip20pt
+{\footnotesize\black
+\insertinstitute
+}
+\vskip10pt
+\inserttitlegraphic
+
+\vskip10pt
+{\tiny\black
+\insertdate
+}
+\end{beamercolorbox}
+\hfill
+\addtocounter{framenumber}{-1}
+}
+
+
+
+
+\setbeamertemplate{frametitle}%[text line]
+{%
+\vspace*{-.03in}
+\begin{centering}
+%\bfseries\large\color{red}%
+\large
+\insertframetitle\par
+\end{centering}
+}
+
+
+\setbeamertemplate{title}
+{
+\begin{centering}
+\red\bfseries
+\inserttitle
+\end{centering}
+}
+                                % Footline
+\setbeamertemplate{footline}[text line]%[frame number]
+{%
+  \ifbeamertemplateempty{logo}
+  {%
+    \vbox{%
+      \setbox\beamer@tempbox=\hbox{\footnotesize\insertshortauthor: \insertshorttitle\hskip1.5cm\insertshortinstitute}%
+        \insertvrule{.4pt}{black}%
+       \vskip3.pt
+\tinyline{%
+\hspace*{-.1in}%
+\scalebox{1.2}{\bfseries\insertshortauthor}%
+\hfill%
+\scalebox{1.2}{\bfseries\insertshortinstitute}%
+%\hfill%
+\raisebox{-.05in}{\scalebox{.3}{\includegraphics[width=0.30\textwidth]{nitc-logo.eps}}}%
+\hspace*{-.12in}%
+}%
+}}
+{xx}
+}
+
+
+\userightsidebartemplate{0cm}{}
+\setbeamertemplate{itemize item}[circle]
+%\setbeamertemplate{itemize subitem}[$]
+
+\mode
+<all>
