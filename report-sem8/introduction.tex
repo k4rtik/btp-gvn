@@ -16,7 +16,7 @@ Karthik Gargi proposed balanced algorithms in 2002\cite{gargi} which extend AWZ 
 
 Gulwani and Necula in 2004\cite{gulwani} proposed a polynomial time algorithm which is optimal if only equalities of bounded size are considered.
 
-We are interested in a sufficiently efficient but complete algorithm for global analysis problem.
+\textbf{A Simple Algorithm for Global Value Numbering} proposed recently by N Saleena and Vineeth Paleri\cite{sagvn} builds on Kildall's approach and is complete in terms of number of redundancies identified. It introduces the concept of a \emph{Value Expression} to represent a set of equivalent expressions which makes this algorithm fairly simple to understand. We decided to implement this algorithm on GCC framework.
 
 \section{Motivation}
 A compiler is a fairly large software program and forms an excellent software engineering case study. Study of compiler optimizations provides a good blend of theory (for generality and correctness) and practice (for validation and efficiency). Global Value Numbering, specifically, is an interesting global dataflow analysis for study. Also, this was an opportunity to work on a popular open source software such as GCC, learn about its huge professional code base and interact with its community of developers.
