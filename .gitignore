@@ -15,3 +15,11 @@
 
 test.c.*
 a.out
+
+# LaTeX report related
+*.aux
+*.lof
+*.log
+*.out
+*.pdf
+*.toc
