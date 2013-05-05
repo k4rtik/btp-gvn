@@ -56,3 +56,40 @@ We choose to implement our pass as a dynamic plugin since it's easier to integra
 \caption{Dynamic Plugin Mechanism in GCC\cite{grc}}
 \label{fig:dynamic-plugin}
 \end{figure}
+
+\pagebreak
+\section{Implementation}
+An extensive study of GCC Application Programming Interface for implementation of optimization passes was done using GCC source code, GCC Internals Documentation\cite{gccint}, slides from GCC Internals Course\cite{dnovillo} and those from IITB GCC Resource Center's workshop - Essential Abstractions in GCC\cite{grc}.
+
+\subsection{Plugin}
+A plugin was developed for the chosen algorithm focusing on verifying the correctness without regard to efficiency. The current implementation can handles only linear code. Expression pools at all program points are maintained in a custom data structure and transfer function applied over them iteratively as described in the algorithm\cite{sagvn}. The code for the plugin is available at\ \url{https://github.com/k4rtik/btp-gvn/tree/master/gvn-plugin}. The pass implemented in this plugin runs just after the \emph{cfg} pass of GCC.
+
+Figure \ref{fig:testprog} shows the test program; the intermediate form (GIMPLE) produced after the CFG pass of GCC is shown in figure \ref{fig:cfg}; and the dump produced by our plugin is shown in figure \ref{fig:sagvn}.
+
+\begin{figure}[htb]
+\centering
+\includegraphics{./test-program}
+\caption{Test Program in C}
+\label{fig:testprog}
+\end{figure}
+
+\begin{figure}[htb]
+\centering
+\includegraphics{./cfg}
+\caption{After CFG pass}
+\label{fig:cfg}
+\end{figure}
+
+\begin{figure}[htb]
+\centering
+\includegraphics{./sagvn}
+\caption{Dump produced by our plugin}
+\label{fig:sagvn}
+\end{figure}
+
+\pagebreak
+\subsection{Challenges Faced}
+\begin{itemize}
+	\item GCC is a long running (about 27 years!), production quality framework (in terms of completeness and usefulness),  and consists of over 4 millions LOC spread over more than 35,000 files\cite{grc}; which is a fairly difficult codebase to understand. Attending the IITB workshop\cite{grc} in summer 2012 and revisiting classics like Kernighan \& Ritchie\cite{kandr} helped to understand and navigate through the source code.
+	\item The GCC Internals Documentation\cite{gccint}, although about 700 pages in length, is considered quite sparse in terms of completeness. Getting help over GCC mailing list\cite{gcc-ml} and GCC development IRC channel\cite{gcc-irc}, however slow in response at times, was a good experience.
+\end{itemize}
