@@ -59,10 +59,10 @@ We choose to implement our pass as a dynamic plugin since it's easier to integra
 
 \pagebreak
 \section{Implementation}
-An extensive study of GCC Application Programming Interface for implementation of optimization passes was done using GCC source code, GCC Internals Documentation\cite{gccint}, slides from GCC Internals Course\cite{dnovillo} and those from IITB GCC Resource Center's workshop - Essential Abstractions in GCC\cite{grc}.
+An extensive study of GCC Application Programming Interface for implementation of optimization passes was done using GCC source code, GCC Internals Documentation\cite{gccint}, slides from GCC Internals Course\cite{dnovillo} and those from IITB GCC Resource Center's workshop -- Essential Abstractions in GCC\cite{grc}.
 
 \subsection{Plugin}
-A plugin was developed for the chosen algorithm focusing on verifying the correctness without regard to efficiency. The current implementation can handles only linear code. Expression pools at all program points are maintained in a custom data structure and transfer function applied over them iteratively as described in the algorithm\cite{sagvn}. The code for the plugin is available at\ \url{https://github.com/k4rtik/btp-gvn/tree/master/gvn-plugin}. The pass implemented in this plugin runs just after the \emph{cfg} pass of GCC.
+A plugin was developed for the chosen algorithm -- Simple Algorithm for Global Value Numbering\cite{sagvn} -- focusing on verifying the correctness without regard to efficiency. The current implementation can handles only linear code. Expression pools at all program points are maintained in a custom data structure and transfer function applied over them iteratively as described in the algorithm\cite{sagvn}. The code for the plugin is available at\ \url{https://github.com/k4rtik/btp-gvn/tree/master/gvn-plugin}. The pass implemented in this plugin runs just after the \emph{cfg} pass of GCC.
 
 Figure \ref{fig:testprog} shows the test program; the intermediate form (GIMPLE) produced after the CFG pass of GCC is shown in figure \ref{fig:cfg}; and the dump produced by our plugin is shown in figure \ref{fig:sagvn}.
 
