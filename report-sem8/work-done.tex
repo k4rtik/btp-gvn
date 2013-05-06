@@ -3,11 +3,11 @@
 \section{Compiler Infrastructures}
 There are various compiler infrastructures available as options for experimental compiler research. We looked into some of the most popular ones: SUIF, GCC and LLVM.
 
-\textbf{SUIF Compiler System}\cite{suif} is a compiler infrastructure made freely available by the Stanford SUIF Compiler Group to support research in optimizing and parallelizing compilers and uses a program representation, also called SUIF (Stanford University Intermediate Format). It supports C, C++, Fortran and Java as frontends and C, x86, Alpha and MachSUIF as backends. It provides an extensible SUIF representation which allows programmers to extend the representation without requiring updating the infrastruture.
+\textbf{SUIF Compiler System}\cite{suif} is a compiler infrastructure made freely available by the Stanford SUIF Compiler Group to support research in optimizing and parallelizing compilers and uses a program representation, also called SUIF (Stanford University Intermediate Format). It supports C, C++, Fortran and Java as front ends and C, x86, Alpha and MachSUIF as back ends. It provides an extensible SUIF representation which allows programmers to extend the representation without requiring updating the infrastructure.
 
-\textbf{GCC (GNU Compiler Collection)}\cite{gcc} is a compiler system produced by the GNU Project which supports various programming languages. GCC is adopted as the standard compiler by most of the modern UNIX-like operating systems, including Linux and BSD. Frontends are available for C, C++, Objective-C, Objective-C++, Fortran, Java, Ada, and Go. It has been ported to a wide variety of processor architecures and is also available for most embedded platforms.
+\textbf{GCC (GNU Compiler Collection)}\cite{gcc} is a compiler system produced by the GNU Project which supports various programming languages. GCC is adopted as the standard compiler by most of the modern UNIX-like operating systems, including Linux and BSD. front ends are available for C, C++, Objective-C, Objective-C++, Fortran, Java, Ada, and Go. It has been ported to a wide variety of processor architectures and is also available for most embedded platforms.
 
-\textbf{LLVM}\cite{llvm} is a fairly new compiler infrastructure developed at University of Illinois, which is designed for compile-time, link-time, run-time and idle-time optimizations of programs. It has a language-agnostic design, which allows it to support a wide variety of frontends, some of which include C, C++, Objective-C, D, Fortran and Ada among others. Clang, LLVM frontend for C-like languages, claims to be much faster and to use much less memory than GCC\cite{clang}. But LLVM supports fewer targets compared to GCC.
+\textbf{LLVM}\cite{llvm} is a fairly new compiler infrastructure developed at University of Illinois, which is designed for compile-time, link-time, run-time and idle-time optimizations of programs. It has a language-agnostic design, which allows it to support a wide variety of front ends, some of which include C, C++, Objective-C, D, Fortran and Ada among others. Clang, LLVM front end for C-like languages, claims to be much faster and to use much less memory than GCC\cite{clang}. But LLVM supports fewer targets compared to GCC.
 
 We choose GCC as our implementation platform as it is a popular, professional, open-source compiler and could yield more realistic results.
 
@@ -41,7 +41,7 @@ GCC internally uses several intermediate forms:
 \subsubsection{GENERIC}
 GENERIC\cite{generic} is an intermediate representation language aimed to provide a language-independent way of representing an entire function in trees. The C, C++ and Java front ends of GCC produce GENERIC directly in the front end. Other front ends instead have different intermediate representations after parsing and convert these to GENERIC.
 \subsubsection{GIMPLE}
-GIMPLE\cite{gimple} is a three-address representation derived from GENERIC by breaking down GENERIC expressions into tuples of no more than 3 operands (with some exceptions like function calls) using temporary variables. All frontends of GCC convert their IR forms to GIMPLE (via GENERIC) for the middle stage of GCC, which does most of the code analysis and optimization.
+GIMPLE\cite{gimple} is a three-address representation derived from GENERIC by breaking down GENERIC expressions into tuples of no more than 3 operands (with some exceptions like function calls) using temporary variables. All front ends of GCC convert their IR forms to GIMPLE (via GENERIC) for the middle stage of GCC, which does most of the code analysis and optimization.
 \subsubsection{Register Transfer Language}
 Register transfer language (RTL)\cite{rtl} is an intermediate representation (IR) that is very close to assembly language (low-level). In GCC, RTL is generated from the GIMPLE representation, transformed by various passes in the GCC `middle-end', and then converted to assembly language.
 
@@ -90,6 +90,6 @@ Figure \ref{fig:testprog} shows the test program; the intermediate form (GIMPLE)
 \pagebreak
 \subsection{Challenges Faced}
 \begin{itemize}
-	\item GCC is a long running (about 27 years!), production quality framework (in terms of completeness and usefulness),  and consists of over 4 millions LOC spread over more than 35,000 files\cite{grc}; which is a fairly difficult codebase to understand. Attending the IITB workshop\cite{grc} in summer 2012 and revisiting classics like Kernighan \& Ritchie\cite{kandr} helped to understand and navigate through the source code.
+	\item GCC is a long running (about 27 years!), production quality framework (in terms of completeness and usefulness),  and consists of over 4 millions LOC (lines of code) spread over more than 35,000 files\cite{grc}; which is a fairly difficult code base to understand. Attending the IITB workshop\cite{grc} in summer 2012 and revisiting classics like Kernighan \& Ritchie\cite{kandr} helped to understand and navigate through the source code.
 	\item The GCC Internals Documentation\cite{gccint}, although about 700 pages in length, is considered quite sparse in terms of completeness. Getting help over GCC mailing list\cite{gcc-ml} and GCC development IRC channel\cite{gcc-irc}, however slow in response at times, was a good experience.
 \end{itemize}
